@@ -8,29 +8,35 @@ void resizeFrameBufferCallback(GLFWwindow* window, int width, int height);
 
 //TODO: Vertex shader source code
 const char* vertexShaderSource =
-"#version 450						\n"
-"layout(location = 0) in vec3 vPos; \n"
-"void main(){						\n"
-"	gl_Position = vec4(vPos, 1.0);	\n"
-"}									\0";
+"#version 450												\n"
+"layout(location = 0) in vec3 vPos;							\n"
+"layout(location = 1) in vec4 vCol;							\n"
+"out vec4 Color;											\n"
+"void main(){												\n"
+"	Color = vCol;											\n"
+"	vec3 pos = vPos;										\n"
+"	//do something with pos to animate						\n"
+"	gl_Position = vec4(pos, 1.0);							\n"
+"}															\0";
 
 //TODO: Fragment shader source code
 const char* fragmentShaderSource =
-"#version 450						\n"
-"out vec4 FragColor;				\n"
-"void main(){						\n"
-"	FragColor = vec4(1.0);			\n"
-"}									\0";
+"#version 450												\n"
+"out vec4 FragColor;										\n"
+"in vec4 Color;												\n"
+"uniform float _Time = 0.0;									\n"
+"void main(){												\n"
+"	FragColor = vec4(abs(sin(_Time)) * Color.rgb, 1.0);		\n"
+"}															\0";
 
 //TODO: Vertex data array
 // using '+' to align data and make clear whats positive
 const float vertexData[] =
 {
-	// position
-	//x     y     z
-	-0.5, -0.5, +0.0,
-	+0.5, -0.5, +0.0,
-	+0.0, +0.5, +0.0
+	//x     y     z    r    g    b    a
+	-0.5, -0.5, +0.0, 1.0, 0.0, 0.0, 1.0,
+	+0.5, -0.5, +0.0, 0.0, 1.0, 0.0, 1.0,
+	+0.0, +0.5, +0.0, 0.0, 0.0, 1.0, 0.0
 };
 
 int main() {
@@ -114,8 +120,15 @@ int main() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
 
 	//TODO: Define vertex attribute layout
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (const void*)0);
+	// POSITION
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (const void*)0);
 	glEnableVertexAttribArray(0);	// Enable this vertex attribute at this index (required!)
+
+	// COLOR
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (const void*)(sizeof(float)*3));
+	glEnableVertexAttribArray(1);
+
+	int timeLocation = glGetUniformLocation(shaderProgram, "_Time");
 
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(0.2f, 0.3f, 0.6f, 1.0f);
@@ -123,6 +136,9 @@ int main() {
 
 		//TODO:Use shader program
 		glUseProgram(shaderProgram);
+
+		float time = (float)glfwGetTime();
+		glUniform1f(timeLocation, time);
 		
 		//TODO: Draw triangle (3 indices!)
 		glDrawArrays(GL_TRIANGLES, 0, 3);

@@ -12,11 +12,12 @@ const char* vertexShaderSource =
 "layout(location = 0) in vec3 vPos;							\n"
 "layout(location = 1) in vec4 vCol;							\n"
 "out vec4 Color;											\n"
+"uniform float _Time = 0.0;									\n"
 "void main(){												\n"
 "	Color = vCol;											\n"
 "	vec3 pos = vPos;										\n"
 "	//do something with pos to animate						\n"
-"	gl_Position = vec4(pos, 1.0);							\n"
+"	gl_Position = vec4(abs(sin(_Time)) * pos.xyz, 1.0);		\n"
 "}															\0";
 
 //TODO: Fragment shader source code
@@ -33,10 +34,16 @@ const char* fragmentShaderSource =
 // using '+' to align data and make clear whats positive
 const float vertexData[] =
 {
-	//x     y     z    r    g    b    a
-	-0.5, -0.5, +0.0, 1.0, 0.0, 0.0, 1.0,
-	+0.5, -0.5, +0.0, 0.0, 1.0, 0.0, 1.0,
-	+0.0, +0.5, +0.0, 0.0, 0.0, 1.0, 0.0
+	//x      y      z    r    g    b    a
+	// Triangle 1
+	-0.5,  -0.25, +0.0, 1.0, 0.0, 0.0, 1.0,
+	+0.0,  -0.25, +0.0, 0.0, 1.0, 0.0, 1.0,
+	-0.25, +0.25, +0.0, 0.0, 0.0, 1.0, 0.0,
+
+	// Triangle 2
+	+0.0,  -0.25, +0.0, 0.0, 0.0, 1.0, 0.0,
+	+0.5,  -0.25, +0.0, 0.0, 1.0, 0.0, 1.0,
+	+0.25, +0.25, +0.0, 1.0, 0.0, 0.0, 1.0
 };
 
 int main() {
@@ -141,7 +148,7 @@ int main() {
 		glUniform1f(timeLocation, time);
 		
 		//TODO: Draw triangle (3 indices!)
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

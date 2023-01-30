@@ -25,7 +25,7 @@ float lastFrameTime;
 float deltaTime;
 
 int SCREEN_WIDTH = 1080;
-int SCREEN_HEIGHT = 720;
+int SCREEN_HEIGHT = 1080;
 
 double prevMouseX;
 double prevMouseY;
@@ -40,6 +40,42 @@ const float MOUSE_SENSITIVITY = 0.1f;
 
 glm::vec3 bgColor = glm::vec3(0);
 float exampleSliderFloat = 0.0f;
+
+namespace TransformFunctions
+{
+	// matrix[column][row]
+
+	glm::mat4 scale(glm::vec3 s)
+	{
+		glm::mat4 scaleMat = glm::mat4
+		(
+
+		);
+
+		return scaleMat;
+	}
+
+	glm::mat4 rotate(glm::vec3 r)
+	{
+		glm::mat4 rotateMat = glm::mat4
+		(
+			
+		);
+
+		return rotateMat;
+	}
+
+	glm::mat4 translate(glm::vec3 p)
+	{
+		glm::mat4 translateMat = glm::mat4(1);
+
+		translateMat[3][0] = p.x;
+		translateMat[3][1] = p.y;
+		translateMat[3][2] = p.z;
+
+		return translateMat;
+	}
+}
 
 int main() {
 	if (!glfwInit()) {

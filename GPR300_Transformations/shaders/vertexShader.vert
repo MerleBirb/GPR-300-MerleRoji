@@ -4,7 +4,8 @@ layout (location = 1) in vec3 vNormal;
 
 out vec3 Normal;
 
-void main(){ 
+void main()
+{ 
     Normal = vNormal;
     gl_Position = vec4(vPos,1);
 }

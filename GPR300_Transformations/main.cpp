@@ -47,35 +47,64 @@ namespace TransformFunctions
 
 	glm::mat4 scale(glm::vec3 s)
 	{
-		glm::mat4 scaleMat = glm::mat4
-		(
+		glm::mat4 scaleMat = glm::mat4(0);
 
-		);
+		scaleMat[0][0] = s.x;
+		scaleMat[1][1] = s.y;
+		scaleMat[2][2] = s.z;
+		scaleMat[3][3] = 1;
 
 		return scaleMat;
 	}
 
 	glm::mat4 rotate(glm::vec3 r)
 	{
-		glm::mat4 rotateMat = glm::mat4
-		(
-			
-		);
+		glm::mat4 rotateMat = glm::mat4(0);
+
+		rotateMat[0][0] = r.x;
+		rotateMat[1][0] = r.x;
+		rotateMat[2][0] = r.x;
+
+		rotateMat[0][1] = r.y;
+		rotateMat[1][1] = r.y;
+		rotateMat[2][1] = r.y;
+
+		rotateMat[0][2] = r.z;
+		rotateMat[1][2] = r.z;
+		rotateMat[2][2] = r.z;
+
+		rotateMat[3][3] = 1;
 
 		return rotateMat;
 	}
 
 	glm::mat4 translate(glm::vec3 p)
 	{
-		glm::mat4 translateMat = glm::mat4(1);
+		glm::mat4 translateMat = glm::mat4(0);
 
 		translateMat[3][0] = p.x;
 		translateMat[3][1] = p.y;
 		translateMat[3][2] = p.z;
 
+		translateMat[0][0] = 1;
+		translateMat[1][1] = 1;
+		translateMat[2][2] = 1;
+		translateMat[3][3] = 1;
+
 		return translateMat;
 	}
 }
+
+struct Transform
+{
+	glm::mat4 getModelMatrix()
+	{
+		return glm::mat4(1);
+	}
+};
+
+const int NUM_CUBES = 8;
+Transform cubes[NUM_CUBES];
 
 int main() {
 	if (!glfwInit()) {
@@ -136,8 +165,11 @@ int main() {
 
 		//Draw
 		shader.use();
-
-		cubeMesh.draw();
+		for (size_t i = 0; i < NUM_CUBES; i++)
+		{
+			shader.setMat4("_Model", cubes[i].getModelMatrix());
+			cubeMesh.draw();
+		}
 
 		//Draw UI
 		ImGui::Begin("Settings");

@@ -57,25 +57,16 @@ namespace TransformFunctions
 		return scaleMat;
 	}
 
-	glm::mat4 rotate(glm::vec3 r)
+	glm::quat rotate(glm::quat r)
 	{
-		glm::mat4 rotateMat = glm::mat4(0);
+		glm::quat rotateQuat = glm::quat();
 
-		rotateMat[0][0] = r.x;
-		rotateMat[1][0] = r.x;
-		rotateMat[2][0] = r.x;
+		rotateQuat[0] = r.x;
+		rotateQuat[1] = r.y;
+		rotateQuat[2] = r.z;
+		rotateQuat[3] = r.w;
 
-		rotateMat[0][1] = r.y;
-		rotateMat[1][1] = r.y;
-		rotateMat[2][1] = r.y;
-
-		rotateMat[0][2] = r.z;
-		rotateMat[1][2] = r.z;
-		rotateMat[2][2] = r.z;
-
-		rotateMat[3][3] = 1;
-
-		return rotateMat;
+		return rotateQuat;
 	}
 
 	glm::mat4 translate(glm::vec3 p)

@@ -18,6 +18,9 @@
 #include "EW/Shader.h"
 #include "EW/ShapeGen.h"
 
+#include "Transform.h"
+#include "TransformFunctions.h"
+
 void resizeFrameBufferCallback(GLFWwindow* window, int width, int height);
 void keyboardCallback(GLFWwindow* window, int keycode, int scancode, int action, int mods);
 
@@ -40,59 +43,6 @@ const float MOUSE_SENSITIVITY = 0.1f;
 
 glm::vec3 bgColor = glm::vec3(0);
 float exampleSliderFloat = 0.0f;
-
-namespace TransformFunctions
-{
-	// matrix[column][row]
-
-	glm::mat4 scale(glm::vec3 s)
-	{
-		glm::mat4 scaleMat = glm::mat4(0);
-
-		scaleMat[0][0] = s.x;
-		scaleMat[1][1] = s.y;
-		scaleMat[2][2] = s.z;
-		scaleMat[3][3] = 1;
-
-		return scaleMat;
-	}
-
-	glm::quat rotate(glm::quat r)
-	{
-		glm::quat rotateQuat = glm::quat();
-
-		rotateQuat[0] = r.x;
-		rotateQuat[1] = r.y;
-		rotateQuat[2] = r.z;
-		rotateQuat[3] = r.w;
-
-		return rotateQuat;
-	}
-
-	glm::mat4 translate(glm::vec3 p)
-	{
-		glm::mat4 translateMat = glm::mat4(0);
-
-		translateMat[3][0] = p.x;
-		translateMat[3][1] = p.y;
-		translateMat[3][2] = p.z;
-
-		translateMat[0][0] = 1;
-		translateMat[1][1] = 1;
-		translateMat[2][2] = 1;
-		translateMat[3][3] = 1;
-
-		return translateMat;
-	}
-}
-
-struct Transform
-{
-	glm::mat4 getModelMatrix()
-	{
-		return glm::mat4(1);
-	}
-};
 
 const int NUM_CUBES = 8;
 Transform cubes[NUM_CUBES];

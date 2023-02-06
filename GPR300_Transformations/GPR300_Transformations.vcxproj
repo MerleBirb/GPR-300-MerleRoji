@@ -149,6 +149,8 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="EW\Mesh.cpp" />
     <ClCompile Include="EW\Shader.cpp" />
+    <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="TransformFunctions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EW\Mesh.h" />
@@ -163,6 +165,8 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="EW\ShapeGen.h" />
     <ClInclude Include="EW\Shader.h" />
+    <ClInclude Include="Transform.h" />
+    <ClInclude Include="TransformFunctions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

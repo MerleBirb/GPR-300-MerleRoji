@@ -21,6 +21,8 @@
 #include "Transform.h"
 #include "TransformFunctions.h"
 
+#include "Camera.h"
+
 void resizeFrameBufferCallback(GLFWwindow* window, int width, int height);
 void keyboardCallback(GLFWwindow* window, int keycode, int scancode, int action, int mods);
 
@@ -46,6 +48,12 @@ float exampleSliderFloat = 0.0f;
 
 const int NUM_CUBES = 8;
 Transform cubes[NUM_CUBES];
+
+Camera camera(
+	glm::vec3(0, 0, -5), glm::vec3(0, 0, 0), 60, 5, (16/9), false, 0.001, 1000
+);
+
+glm::mat4 model = glm::mat4(1);
 
 int main() {
 	if (!glfwInit()) {
@@ -113,7 +121,7 @@ int main() {
 			cubes[i].setRotation(glm::quat());
 			cubes[i].setPosition(glm::vec3(0));
 
-			shader.setMat4("_Model", cubes[i].getModelMatrix());
+			shader.setMat4("_MVP", camera.getProjectionMatrix() * camera.getViewMatrix() * cubes[i].getModelMatrix());
 			cubeMesh.draw();
 		}
 

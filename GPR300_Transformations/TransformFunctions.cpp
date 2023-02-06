@@ -59,10 +59,26 @@ glm::mat4 TransformFunctions::orthographicProjection(float height, float aspectR
 	float bottom = -top;
 
 	glm::mat4 projMatrix = glm::mat4(
-		(2.0 / (right - left)), 0, 0, 0,// column 1
-		0, (2.0 / (top - bottom)), 0, 0,// column 2
-		0, 0, (-2.0 / (farPlane - nearPlane)), 0, 0 // column 3
+		(2.0f / (right - left)), 0, 0, 0,// column 1
+		0, (2.0f / (top - bottom)), 0, 0,// column 2
+		0, 0, (-2.0f / (farPlane - nearPlane)), 0, 0 // column 3
 		(-(right + left) / (right - left)), (-(top + bottom) / (top - bottom)), (-(farPlane + nearPlane) / (farPlane - nearPlane)), 1 // column 4
+	);
+
+	return projMatrix;
+}
+
+glm::mat4 TransformFunctions::perspectiveProjection(float FOV, float aspectRatio, float nearPlane, float farPlane)
+{
+	float pi = 3.14159265358979323846f;
+	float radianFOV = FOV * (pi / 180);
+	float c = tan(radianFOV / 2);
+
+	glm::mat4 projMatrix = glm::mat4(
+		(1.0f / (aspectRatio * c)), 0, 0, 0,						      // column 1
+		0, (1.0f / c), 0, 0,										      // column 2
+		0, 0, (-((farPlane + nearPlane) / (farPlane - nearPlane))), -1,   // column 3
+		0, 0, (-((2 * farPlane * nearPlane) / (farPlane - nearPlane))), 1 // column 4
 	);
 
 	return projMatrix;

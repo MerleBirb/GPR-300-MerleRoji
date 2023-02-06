@@ -50,7 +50,8 @@ glm::mat4 Camera::getProjectionMatrix()
 	}
 	else
 	{
-		glm::mat4 perspMatrix = glm::mat4(0);
+		glm::mat4 perspMatrix =
+			TransformFunctions::perspectiveProjection(mFOV, mAspectRatio, mNearPlane + mPosition.z, mFarPlane + mPosition.z);
 
 		projectionMatrix = perspMatrix;
 	}

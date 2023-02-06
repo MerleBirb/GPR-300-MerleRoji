@@ -14,5 +14,9 @@ namespace TransformFunctions
 
 	glm::mat4 rotate(glm::quat r);
 
+	glm::mat4 viewRotate(glm::vec3 r, glm::vec3 u, glm::vec3 f);
+
 	glm::mat4 translate(glm::vec3 p);
+
+	glm::mat4 orthographicProjection(float height, float aspectRatio, float nearPlane, float farPlane);
 }

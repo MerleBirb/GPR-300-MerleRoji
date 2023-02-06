@@ -108,6 +108,11 @@ int main() {
 		shader.use();
 		for (size_t i = 0; i < NUM_CUBES; i++)
 		{
+			// set transformation
+			cubes[i].setScale(glm::vec3(1));
+			cubes[i].setRotation(glm::quat());
+			cubes[i].setPosition(glm::vec3(0));
+
 			shader.setMat4("_Model", cubes[i].getModelMatrix());
 			cubeMesh.draw();
 		}

@@ -21,6 +21,10 @@ public:
 	glm::quat getRotation() { return mRotation; }
 	glm::vec3 getScale() { return mScale; }
 
+	void setPosition(glm::vec3 p) { mPosition = p; }
+	void setRotation(glm::quat r) { mRotation = r; }
+	void setScale(glm::vec3 s) { mScale = s; }
+
 	glm::mat4 getPositionMatrix() { return TransformFunctions::translate(mPosition); }
 	glm::mat4 getRotationMatrix() { return TransformFunctions::rotate(mRotation); }
 	glm::mat4 getScaleMatrix() { return TransformFunctions::scale(mScale); }

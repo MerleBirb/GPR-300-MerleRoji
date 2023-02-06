@@ -29,16 +29,11 @@ glm::mat4 TransformFunctions::rotate(glm::quat r)
 
 glm::mat4 TransformFunctions::translate(glm::vec3 p)
 {
-	glm::mat4 translateMat = glm::mat4(0);
+	glm::mat4 translateMat = glm::mat4(1);
 
 	translateMat[3][0] = p.x;
 	translateMat[3][1] = p.y;
 	translateMat[3][2] = p.z;
-
-	translateMat[0][0] = 1;
-	translateMat[1][1] = 1;
-	translateMat[2][2] = 1;
-	translateMat[3][3] = 1;
 
 	return translateMat;
 }

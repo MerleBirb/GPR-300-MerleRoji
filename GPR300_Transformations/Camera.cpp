@@ -1,40 +1,43 @@
 #include "Camera.h"
 
-Camera::Camera()
+Camera::Camera(float aspectRatio)
 {
-	mPosition = glm::vec3(0);
+	mPosition = glm::vec3(0, 0, 5);
 	mTarget = glm::vec3(0);
-	mFOV = 60;
-	mOrthographicSize = 1;
-	mAspectRatio = 1.77;
+	mFOV = 60.0f;
+	mOrthographicSize = 7.5f;
+	mAspectRatio = aspectRatio;
 	mIsOrthographic = false;
-	mNearPlane = 0.001;
-	mFarPlane = 1000;
+	mNearPlane = 0.001f;
+	mFarPlane = 1000.0f;
 }
 
-Camera::Camera(glm::vec3 newPos, glm::vec3 newTarget, float newFOV, float newOrthosize, float newAspectRatio, bool isOrtho, float newNearPlane, float newFarPlane)
-{
-	mPosition = newPos;
-	mTarget = newTarget;
-	mFOV = newFOV;
-	mOrthographicSize = newOrthosize;
-	mAspectRatio = newAspectRatio;
-	mIsOrthographic = isOrtho;
-	mNearPlane = newNearPlane;
-	mFarPlane = newFarPlane;
-}
+//glm::vec3 Camera::getForward()
+//{
+//	float yawRadians = glm::radians(mYaw);
+//	float pitchRadians = glm::radians(mPitch);
+//
+//	glm::vec3 forward;
+//	forward.x = cos(yawRadians) * cos(pitchRadians);
+//	forward.y = sin(pitchRadians);
+//	forward.z = sin(yawRadians) * cos(pitchRadians);
+//
+//	return forward;
+//}
 
 glm::mat4 Camera::getViewMatrix()
 {
 	glm::mat4 viewMatrixTranslation = TransformFunctions::translate(-mPosition);
+	glm::vec3 up = glm::vec3(0, 1, 0);
+	glm::vec3 forward = glm::normalize(mTarget - mPosition);
+	glm::vec3 right = glm::normalize(glm::cross(forward, up));
 
-	glm::vec3 right = glm::vec3(mTarget.x, 0, 0);
-	glm::vec3 up = glm::vec3(0, mTarget.y, 0);
-	glm::vec3 forward = glm::vec3(0, 0, -mTarget.z);
+	up = glm::normalize(glm::cross(right, forward));
+	forward = -forward; // flip 
 
 	glm::mat4 viewMatrixRotation = TransformFunctions::viewRotate(right, up, forward);
 
-	return viewMatrixTranslation * viewMatrixRotation;
+	return viewMatrixRotation * viewMatrixTranslation;
 }
 
 glm::mat4 Camera::getProjectionMatrix()
@@ -43,17 +46,17 @@ glm::mat4 Camera::getProjectionMatrix()
 
 	if (mIsOrthographic)
 	{
-		glm::mat4 orthoMatrix = 
-			TransformFunctions::orthographicProjection(mOrthographicSize, mAspectRatio, mNearPlane + mPosition.z, mFarPlane + mPosition.z);
+		float width = mOrthographicSize * mAspectRatio;
+		float right = width * 0.5f;
+		float left = -right;
+		float top = mOrthographicSize * 0.5f;
+		float bottom = -top;
 
-		projectionMatrix = orthoMatrix;
+		projectionMatrix = glm::ortho(left, right, top, bottom, mNearPlane, mFarPlane);
 	}
 	else
 	{
-		glm::mat4 perspMatrix =
-			TransformFunctions::perspectiveProjection(mFOV, mAspectRatio, mNearPlane + mPosition.z, mFarPlane + mPosition.z);
-
-		projectionMatrix = perspMatrix;
+		projectionMatrix = glm::perspective(glm::radians(mFOV), mAspectRatio, mNearPlane, mFarPlane);
 	}
 
 	return projectionMatrix;

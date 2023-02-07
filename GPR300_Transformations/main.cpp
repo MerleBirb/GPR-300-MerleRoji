@@ -30,7 +30,7 @@ float lastFrameTime;
 float deltaTime;
 
 int SCREEN_WIDTH = 1080;
-int SCREEN_HEIGHT = 1080;
+int SCREEN_HEIGHT = 720;
 
 double prevMouseX;
 double prevMouseY;
@@ -49,9 +49,7 @@ float exampleSliderFloat = 0.0f;
 const int NUM_CUBES = 8;
 Transform cubes[NUM_CUBES];
 
-Camera camera(
-	glm::vec3(0, 0, -5), glm::vec3(0, 0, 0), 60, 5, (16/9), false, 0.001, 1000
-);
+Camera camera((float)SCREEN_WIDTH / (float)SCREEN_HEIGHT);
 
 glm::mat4 model = glm::mat4(1);
 
@@ -112,6 +110,10 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
+		// draw camera
+		shader.setMat4("_Projection", camera.getProjectionMatrix());
+		shader.setMat4("_View", camera.getViewMatrix());
+
 		//Draw
 		shader.use();
 		for (size_t i = 0; i < NUM_CUBES; i++)
@@ -121,7 +123,7 @@ int main() {
 			cubes[i].setRotation(glm::quat());
 			cubes[i].setPosition(glm::vec3(0));
 
-			shader.setMat4("_MVP", camera.getProjectionMatrix() * camera.getViewMatrix() * cubes[i].getModelMatrix());
+			shader.setMat4("_Model", cubes[i].getModelMatrix());
 			cubeMesh.draw();
 		}
 

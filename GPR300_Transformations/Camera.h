@@ -27,12 +27,11 @@ public:
 	glm::vec3 getPosition() { return mPosition; }
 	glm::vec3 getTarget() { return mTarget; }
 	float getFOV() { return mFOV; }
-	//glm::vec3 getForward();
 	glm::mat4 getViewMatrix();
 	glm::mat4 getProjectionMatrix();
 
 	// setters
-	void setPosition(const glm::vec3 pos) { mPosition = pos; }
+	void setPosition(glm::vec3 pos) { mPosition = pos; }
 	void setTarget(const glm::vec3 tar) { mTarget = tar; }
 	void setFOV(const float FOV) { mFOV = FOV; }
 	void setNearPlane(const float np) { mNearPlane = np; }

@@ -2,7 +2,7 @@
 
 Camera::Camera(float aspectRatio)
 {
-	mPosition = glm::vec3(0, 0, 5);
+	mPosition = glm::vec3(0, 0, 20);
 	mTarget = glm::vec3(0);
 	mFOV = 60.0f;
 	mOrthographicSize = 7.5f;
@@ -11,19 +11,6 @@ Camera::Camera(float aspectRatio)
 	mNearPlane = 0.001f;
 	mFarPlane = 1000.0f;
 }
-
-//glm::vec3 Camera::getForward()
-//{
-//	float yawRadians = glm::radians(mYaw);
-//	float pitchRadians = glm::radians(mPitch);
-//
-//	glm::vec3 forward;
-//	forward.x = cos(yawRadians) * cos(pitchRadians);
-//	forward.y = sin(pitchRadians);
-//	forward.z = sin(yawRadians) * cos(pitchRadians);
-//
-//	return forward;
-//}
 
 glm::mat4 Camera::getViewMatrix()
 {

@@ -4,9 +4,9 @@
 
 Transform::Transform()
 {
-	mPosition = glm::vec3(0);
+	mPosition = glm::vec3(0.0f);
 	mRotation = glm::quat();
-	mScale = glm::vec3(0);
+	mScale = glm::vec3(0.0f);
 }
 
 Transform::Transform(glm::vec3 newPos, glm::quat newRot, glm::vec3 newScale)

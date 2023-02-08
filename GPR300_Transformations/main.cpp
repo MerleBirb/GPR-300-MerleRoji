@@ -23,6 +23,8 @@
 
 #include "Camera.h"
 
+#include "time.h"
+
 void resizeFrameBufferCallback(GLFWwindow* window, int width, int height);
 void keyboardCallback(GLFWwindow* window, int keycode, int scancode, int action, int mods);
 
@@ -47,9 +49,16 @@ glm::vec3 bgColor = glm::vec3(0);
 float exampleSliderFloat = 0.0f;
 
 const int NUM_CUBES = 8;
+const int MAX_DIST = 5;
+const int MAX_DEG = 360;
+const int MAX_SCALE = 3;
 Transform cubes[NUM_CUBES];
+Transform randTransforms[NUM_CUBES];
 
 Camera camera((float)SCREEN_WIDTH / (float)SCREEN_HEIGHT);
+float camRadius = 5.0f;
+float camSpeed = 1.0f;
+float camFOV = 60.0f;
 
 glm::mat4 model = glm::mat4(1);
 
@@ -58,6 +67,8 @@ int main() {
 		printf("glfw failed to init");
 		return 1;
 	}
+	
+	srand(time(NULL));
 
 	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Transformations", 0, 0);
 	glfwMakeContextCurrent(window);
@@ -98,6 +109,16 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
+	// set random position, rotation, scale for cubes
+	for (size_t i = 0; i < NUM_CUBES; i++)
+	{
+		randTransforms[i].setScale(glm::vec3(rand() % MAX_SCALE + 1));
+		randTransforms[i].setRotation(glm::quat(glm::vec3(rand() % MAX_DEG)));
+		randTransforms[i].setPosition(glm::vec3(rand() % (2 * MAX_DIST) - MAX_DIST, rand() % (2 * MAX_DIST) - MAX_DIST, rand() % (2 * MAX_DIST) - MAX_DIST));
+	}
+
+	glm::vec3 ogCamPos = camera.getPosition();
+
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -110,6 +131,10 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
+		// set camera parameters
+		camera.setPosition(glm::vec3(cos(time * camSpeed), ogCamPos.y, sin(time * camSpeed)) * camRadius);
+		camera.setFOV(camFOV);
+
 		// draw camera
 		shader.setMat4("_Projection", camera.getProjectionMatrix());
 		shader.setMat4("_View", camera.getViewMatrix());
@@ -119,9 +144,9 @@ int main() {
 		for (size_t i = 0; i < NUM_CUBES; i++)
 		{
 			// set transformation
-			cubes[i].setScale(glm::vec3(1));
-			cubes[i].setRotation(glm::quat());
-			cubes[i].setPosition(glm::vec3(0));
+			cubes[i].setScale(randTransforms[i].getScale());
+			cubes[i].setRotation(randTransforms[i].getRotation());
+			cubes[i].setPosition(randTransforms[i].getPosition());
 
 			shader.setMat4("_Model", cubes[i].getModelMatrix());
 			cubeMesh.draw();
@@ -129,7 +154,9 @@ int main() {
 
 		//Draw UI
 		ImGui::Begin("Settings");
-		ImGui::SliderFloat("Example slider", &exampleSliderFloat, 0.0f, 10.0f);
+		ImGui::SliderFloat("Camera Radius", &camRadius, 0.0f, 20.0f);
+		ImGui::SliderFloat("Camera Speed", &camSpeed, -10.0f, 10.0f);
+		ImGui::SliderFloat("Camera FOV", &camFOV, 0.0f, 180.0f);
 		ImGui::End();
 
 		ImGui::Render();

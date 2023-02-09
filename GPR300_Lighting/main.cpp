@@ -56,6 +56,15 @@ glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, 0.0f);
 
 bool wireFrame = false;
 
+struct PointLight
+{
+	glm::vec3 position;
+	glm::vec3 color;
+	float intensity;
+};
+
+PointLight light;
+
 int main() {
 	if (!glfwInit()) {
 		printf("glfw failed to init");
@@ -155,7 +164,14 @@ int main() {
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
-		litShader.setVec3("_LightPos", lightTransform.position);
+		//litShader.setVec3("_LightPos", lightTransform.position);
+
+		// Set some lighting uniforms
+		litShader.setVec3("_Lights[" + std::to_string(0) + "].position", lightTransform.position);
+		litShader.setVec3("_Lights[" + std::to_string(0) + "].color", light.color);
+		litShader.setFloat("_Lights[" + std::to_string(0) + "].intensity", light.intensity);
+
+		cubeTransform.rotation.x += deltaTime;
 		//Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
 		cubeMesh.draw();

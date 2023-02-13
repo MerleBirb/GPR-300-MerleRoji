@@ -56,14 +56,22 @@ glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, 0.0f);
 
 bool wireFrame = false;
 
-struct PointLight
+struct BaseLight
 {
 	glm::vec3 position;
 	glm::vec3 color;
 	float intensity;
 };
 
-PointLight light;
+struct DirectionalLight
+{
+	glm::vec3 position;
+	glm::vec3 color;
+	glm::vec3 direction;
+	float intensity;
+};
+
+DirectionalLight dirLight;
 
 int main() {
 	if (!glfwInit()) {
@@ -147,6 +155,10 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
+	dirLight.position = lightTransform.position;
+	dirLight.color = glm::vec3(0.5f, 0.5f, 0.5f);
+	dirLight.intensity = 1.0f;
+
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
@@ -164,14 +176,17 @@ int main() {
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
-		//litShader.setVec3("_LightPos", lightTransform.position);
 
 		// Set some lighting uniforms
-		litShader.setVec3("_Lights[" + std::to_string(0) + "].position", lightTransform.position);
-		litShader.setVec3("_Lights[" + std::to_string(0) + "].color", light.color);
-		litShader.setFloat("_Lights[" + std::to_string(0) + "].intensity", light.intensity);
+		for (size_t i = 0; i < 1; i++)
+		{
+			litShader.setVec3("_Lights[" + std::to_string(i) + "].position", dirLight.position);
+			litShader.setVec3("_Lights[" + std::to_string(i) + "].color", dirLight.color);
+			litShader.setFloat("_Lights[" + std::to_string(i) + "].intensity", dirLight.intensity);
+		}
 
-		cubeTransform.rotation.x += deltaTime;
+		//cubeTransform.rotation.x += deltaTime;
+
 		//Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
 		cubeMesh.draw();

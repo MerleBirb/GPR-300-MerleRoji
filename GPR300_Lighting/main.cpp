@@ -65,13 +65,21 @@ struct BaseLight
 
 struct DirectionalLight
 {
-	glm::vec3 position;
-	glm::vec3 color;
 	glm::vec3 direction;
+	glm::vec3 color;
 	float intensity;
 };
 
 DirectionalLight dirLight;
+
+// NOTES:
+/*
+* - write uniforms for coefficients, like shininess, etc
+* - create data in main
+* - create variables in glsl
+* - provide ImGUI controls as sliders for coefficients
+* - create other lights, point, spotlight, etc
+*/
 
 int main() {
 	if (!glfwInit()) {
@@ -155,7 +163,7 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
-	dirLight.position = lightTransform.position;
+	dirLight.direction = lightTransform.position;
 	dirLight.color = glm::vec3(0.5f, 0.5f, 0.5f);
 	dirLight.intensity = 1.0f;
 
@@ -177,10 +185,13 @@ int main() {
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
 
+		litShader.setVec3("cameraPos", camera.getPosition());
+
 		// Set some lighting uniforms
+		
 		for (size_t i = 0; i < 1; i++)
 		{
-			litShader.setVec3("_Lights[" + std::to_string(i) + "].position", dirLight.position);
+			litShader.setVec3("_Lights[" + std::to_string(i) + "].position", lightTransform.position);
 			litShader.setVec3("_Lights[" + std::to_string(i) + "].color", dirLight.color);
 			litShader.setFloat("_Lights[" + std::to_string(i) + "].intensity", dirLight.intensity);
 		}
@@ -214,7 +225,7 @@ int main() {
 		//Draw UI
 		ImGui::Begin("Settings");
 
-		ImGui::ColorEdit3("Light Color", &lightColor.r);
+		ImGui::ColorEdit3("Light Color", &dirLight.color.r);
 		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
 		ImGui::End();
 

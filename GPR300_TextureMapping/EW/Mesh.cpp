@@ -15,11 +15,17 @@ namespace ew {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, meshData->indices.size() * sizeof(unsigned int), &meshData->indices[0], GL_STATIC_DRAW);
 
+		// Position
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, position)));
 		glEnableVertexAttribArray(0);
 
+		// Normal
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, normal)));
 		glEnableVertexAttribArray(1);
+
+		// Texture coordinate (UV)
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, uv)));
+		glEnableVertexAttribArray(2);
 
 		mNumIndices = (GLsizei)meshData->indices.size();
 		mNumVertices = (GLsizei)meshData->vertices.size();

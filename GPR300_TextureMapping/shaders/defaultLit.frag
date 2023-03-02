@@ -20,6 +20,9 @@ uniform vec3 cameraPos;
 #define MAX_LIGHTS 8
 uniform Light _Lights[MAX_LIGHTS];
 
+in vec3 Normal;
+in vec2 UV;
+
 vec3 ambient(float coefficient, vec3 color)
 {
     vec3 ambientLight;
@@ -51,15 +54,15 @@ vec3 specular(float specCoefficient, vec3 toLightDir, vec3 surfaceNormal, float 
 
 void main()
 {
-    vec3 normal = normalize(v_out.WorldNormal);
+    //vec3 normal = normalize(v_out.WorldNormal);
+    //
+    //vec3 color = vec3(0);
+    //vec3 toLightDir = normalize(_Lights[0].position - v_out.WorldPosition);
+    //vec3 ambientLight = ambient(0.2f, _Lights[0].color);
+    //vec3 diffuseLight = diffuse(0.8f, toLightDir, normal, _Lights[0].color);
+    //vec3 specularLight = specular(0.5f, toLightDir, normal, 64f, _Lights[0].color);
+    //
+    //color = ambientLight + diffuseLight + specularLight;
 
-    vec3 color = vec3(0);
-    vec3 toLightDir = normalize(_Lights[0].position - v_out.WorldPosition);
-    vec3 ambientLight = ambient(0.2f, _Lights[0].color);
-    vec3 diffuseLight = diffuse(0.8f, toLightDir, normal, _Lights[0].color);
-    vec3 specularLight = specular(0.5f, toLightDir, normal, 64f, _Lights[0].color);
-
-    color = ambientLight + diffuseLight + specularLight;
-
-    FragColor = vec4(color,1.0f);
+    FragColor = vec4(UV.x, UV.y, 0.0f,1.0f);
 }

@@ -119,19 +119,23 @@ int main() {
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
 
-	ew::MeshData cubeMeshData;
-	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
-	ew::MeshData sphereMeshData;
-	ew::createSphere(0.5f, 64, sphereMeshData);
-	ew::MeshData cylinderMeshData;
-	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
-	ew::MeshData planeMeshData;
-	ew::createPlane(1.0f, 1.0f, planeMeshData);
+	//ew::MeshData cubeMeshData;
+	//ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
+	//ew::MeshData sphereMeshData;
+	//ew::createSphere(0.5f, 64, sphereMeshData);
+	//ew::MeshData cylinderMeshData;
+	//ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
+	//ew::MeshData planeMeshData;
+	//ew::createPlane(1.0f, 1.0f, planeMeshData);
+	//
+	//ew::Mesh cubeMesh(&cubeMeshData);
+	//ew::Mesh sphereMesh(&sphereMeshData);
+	//ew::Mesh planeMesh(&planeMeshData);
+	//ew::Mesh cylinderMesh(&cylinderMeshData);
 
-	ew::Mesh cubeMesh(&cubeMeshData);
-	ew::Mesh sphereMesh(&sphereMeshData);
-	ew::Mesh planeMesh(&planeMeshData);
-	ew::Mesh cylinderMesh(&cylinderMeshData);
+	ew::MeshData quadMeshData;
+	ew::createQuad(1.0f, 1.0f, quadMeshData);
+	ew::Mesh quadMesh(&quadMeshData);
 
 	//Enable back face culling
 	glEnable(GL_CULL_FACE);
@@ -184,43 +188,46 @@ int main() {
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
-
 		litShader.setVec3("cameraPos", camera.getPosition());
 
-		// Set some lighting uniforms
-		
-		for (size_t i = 0; i < 1; i++)
-		{
-			litShader.setVec3("_Lights[" + std::to_string(i) + "].position", lightTransform.position);
-			litShader.setVec3("_Lights[" + std::to_string(i) + "].color", dirLight.color);
-			litShader.setFloat("_Lights[" + std::to_string(i) + "].intensity", dirLight.intensity);
-		}
+		//Draw quad
+		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
+		quadMesh.draw();
+
+		//// Set some lighting uniforms
+		//
+		//for (size_t i = 0; i < 1; i++)
+		//{
+		//	litShader.setVec3("_Lights[" + std::to_string(i) + "].position", lightTransform.position);
+		//	litShader.setVec3("_Lights[" + std::to_string(i) + "].color", dirLight.color);
+		//	litShader.setFloat("_Lights[" + std::to_string(i) + "].intensity", dirLight.intensity);
+		//}
 
 		//cubeTransform.rotation.x += deltaTime;
 
-		//Draw cube
-		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
-		cubeMesh.draw();
-
-		//Draw sphere
-		litShader.setMat4("_Model", sphereTransform.getModelMatrix());
-		sphereMesh.draw();
-
-		//Draw cylinder
-		litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
-		cylinderMesh.draw();
-
-		//Draw plane
-		litShader.setMat4("_Model", planeTransform.getModelMatrix());
-		planeMesh.draw();
-
-		//Draw light as a small sphere using unlit shader, ironically.
-		unlitShader.use();
-		unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
-		unlitShader.setMat4("_View", camera.getViewMatrix());
-		unlitShader.setMat4("_Model", lightTransform.getModelMatrix());
-		unlitShader.setVec3("_Color", lightColor);
-		sphereMesh.draw();
+		////Draw cube
+		//litShader.setMat4("_Model", cubeTransform.getModelMatrix());
+		//cubeMesh.draw();
+		//
+		////Draw sphere
+		//litShader.setMat4("_Model", sphereTransform.getModelMatrix());
+		//sphereMesh.draw();
+		//
+		////Draw cylinder
+		//litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
+		//cylinderMesh.draw();
+		//
+		////Draw plane
+		//litShader.setMat4("_Model", planeTransform.getModelMatrix());
+		//planeMesh.draw();
+		//
+		////Draw light as a small sphere using unlit shader, ironically.
+		//unlitShader.use();
+		//unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
+		//unlitShader.setMat4("_View", camera.getViewMatrix());
+		//unlitShader.setMat4("_Model", lightTransform.getModelMatrix());
+		//unlitShader.setVec3("_Color", lightColor);
+		//sphereMesh.draw();
 
 		//Draw UI
 		ImGui::Begin("Settings");

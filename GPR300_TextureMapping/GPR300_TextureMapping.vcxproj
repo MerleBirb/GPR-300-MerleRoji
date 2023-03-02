@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{D53726BA-5AC6-4AE2-A563-D595DB39FFB4}</ProjectGuid>
+    <ProjectGuid>{7A40AE05-ABF5-457C-91AE-D0BB6AF36734}</ProjectGuid>
     <RootNamespace>BaseOpenGLApp</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>GPR300_TextureMapping</ProjectName>

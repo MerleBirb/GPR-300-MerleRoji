@@ -127,11 +127,14 @@ int main() {
 	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
 	ew::MeshData planeMeshData;
 	ew::createPlane(1.0f, 1.0f, planeMeshData);
+	ew::MeshData quadMeshData;
+	ew::createQuad(2.0f, 2.0f, quadMeshData);
 
 	ew::Mesh cubeMesh(&cubeMeshData);
 	ew::Mesh sphereMesh(&sphereMeshData);
 	ew::Mesh planeMesh(&planeMeshData);
 	ew::Mesh cylinderMesh(&cylinderMeshData);
+	ew::Mesh quadMesh(&quadMeshData);
 
 	//Enable back face culling
 	glEnable(GL_CULL_FACE);
@@ -167,9 +170,51 @@ int main() {
 	dirLight.color = glm::vec3(0.5f, 0.5f, 0.5f);
 	dirLight.intensity = 1.0f;
 
-	while (!glfwWindowShouldClose(window)) {
+	// Create framebuffer
+	unsigned int fbo;
+	glGenFramebuffers(1, &fbo);
+
+	// Create and bind texture color buffer
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// create render buffer
+	unsigned int rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+
+	//Create storage for depth components
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	// Bind framebuffer - draw to this frame buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+	// attach color buffer to framebuffer
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+	// attach RBO to current FBO
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	//Unbind (will reset to default framebuffer)
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//Returns the state of the currently bound FBO
+	GLenum fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (fboStatus == GL_FRAMEBUFFER_COMPLETE) { printf("complete"); }
+	else { printf("incomplete"); }
+
+	while (!glfwWindowShouldClose(window))
+	{
 		processInput(window);
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// render scene
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -186,6 +231,9 @@ int main() {
 		litShader.setMat4("_View", camera.getViewMatrix());
 
 		litShader.setVec3("cameraPos", camera.getPosition());
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
 
 		// Set some lighting uniforms
 		
@@ -231,11 +279,19 @@ int main() {
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		glfwPollEvents();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		quadMesh.draw();
 
 		glfwSwapBuffers(window);
+		glfwPollEvents();
 	}
-
+	//Delete
+	glDeleteFramebuffers(1, &fbo);
 	glfwTerminate();
 	return 0;
 }

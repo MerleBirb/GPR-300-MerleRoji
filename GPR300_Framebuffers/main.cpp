@@ -128,7 +128,7 @@ int main() {
 	ew::MeshData planeMeshData;
 	ew::createPlane(1.0f, 1.0f, planeMeshData);
 	ew::MeshData quadMeshData;
-	ew::createQuad(2.0f, 2.0f, quadMeshData);
+	ew::createQuad(2.0f, 2.0f, quadMeshData); //gl_Position(vPos, 1)
 
 	ew::Mesh cubeMesh(&cubeMeshData);
 	ew::Mesh sphereMesh(&sphereMeshData);
@@ -199,11 +199,9 @@ int main() {
 	// attach RBO to current FBO
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
-	//Unbind (will reset to default framebuffer)
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	//Returns the state of the currently bound FBO
 	GLenum fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	assert(fboStatus == GL_FRAMEBUFFER_COMPLETE);
 	if (fboStatus == GL_FRAMEBUFFER_COMPLETE) { printf("complete"); }
 	else { printf("incomplete"); }
 

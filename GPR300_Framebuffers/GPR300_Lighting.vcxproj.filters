@@ -99,4 +99,8 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\fullscreenquad.frag" />
+    <None Include="shaders\fullscreenquad.vert" />
+  </ItemGroup>
 </Project>

@@ -32,10 +32,10 @@ namespace ew {
 		float halfHeight = height / 2.0f;
 		Vertex vertices[4] = {
 			//Front face
-			{glm::vec3(-halfWidth, -halfHeight, 0), glm::vec3(0,0,1)}, //BL
-			{glm::vec3(+halfWidth, -halfHeight, 0), glm::vec3(0,0,1)}, //BR
-			{glm::vec3(+halfWidth, +halfHeight, 0), glm::vec3(0,0,1)}, //TR
-			{glm::vec3(-halfWidth, +halfHeight, 0), glm::vec3(0,0,1)} //TL
+			{glm::vec3(-halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0, 0)}, //BL
+			{glm::vec3(+halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1, 0)}, //BR
+			{glm::vec3(+halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1, 1)}, //TR
+			{glm::vec3(-halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0, 1)}  //TL
 		};
 		meshData.vertices.assign(&vertices[0], &vertices[4]);
 		unsigned int indices[6] = {

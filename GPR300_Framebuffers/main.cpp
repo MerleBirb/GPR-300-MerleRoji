@@ -119,6 +119,9 @@ int main() {
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
 
+	// Fullscreen quad shaders
+	Shader quadShader("shaders/fullscreenquad.vert", "shaders/fullscreenquad.frag");
+
 	ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
 	ew::MeshData sphereMeshData;
@@ -268,6 +271,18 @@ int main() {
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
 
+		// unbind
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		// draw fullscreen quad
+		quadShader.use();
+		quadShader.setInt("_FullscreenQuad", 0);
+		quadMesh.draw();
+
 		//Draw UI
 		ImGui::Begin("Settings");
 
@@ -277,13 +292,6 @@ int main() {
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		quadMesh.draw();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

@@ -121,6 +121,9 @@ int main() {
 
 	// Fullscreen quad shaders
 	Shader quadShader("shaders/fullscreenquad.vert", "shaders/fullscreenquad.frag");
+	// effect booleans
+	bool isBlurOn = false;
+	bool isNegOn = false;
 
 	ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
@@ -281,6 +284,11 @@ int main() {
 		// draw fullscreen quad
 		quadShader.use();
 		quadShader.setInt("_FullscreenQuad", 0);
+		quadShader.setInt("_ScreenWidth", SCREEN_WIDTH);
+		quadShader.setInt("_ScreenHeight", SCREEN_HEIGHT);
+		quadShader.setInt("_IsBlurOn", isBlurOn);
+		quadShader.setInt("_IsNegOn", isNegOn);
+
 		quadMesh.draw();
 
 		//Draw UI
@@ -288,6 +296,8 @@ int main() {
 
 		ImGui::ColorEdit3("Light Color", &dirLight.color.r);
 		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
+		ImGui::Checkbox("Blur", &isBlurOn);
+		ImGui::Checkbox("Negative", &isNegOn);
 		ImGui::End();
 
 		ImGui::Render();

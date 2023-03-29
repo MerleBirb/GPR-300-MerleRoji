@@ -55,11 +55,11 @@ void main()
 
     vec3 color = vec3(0);
     vec3 toLightDir = normalize(_Lights[0].position - v_out.WorldPosition);
-    vec3 ambientLight = ambient(0.2f, _Lights[0].color);
-    vec3 diffuseLight = diffuse(0.8f, toLightDir, normal, _Lights[0].color);
-    vec3 specularLight = specular(0.5f, toLightDir, normal, 64f, _Lights[0].color);
+    vec3 ambientLight = ambient(0.2, _Lights[0].color);
+    vec3 diffuseLight = diffuse(0.8, toLightDir, normal, _Lights[0].color);
+    vec3 specularLight = specular(0.5, toLightDir, normal, 64, _Lights[0].color);
 
     color = ambientLight + diffuseLight + specularLight;
 
-    FragColor = vec4(color,1.0f);
+    FragColor = vec4(color, 1.0);
 }

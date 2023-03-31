@@ -56,7 +56,7 @@ glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, 0.0f);
 
 bool wireFrame = false;
 
-struct BaseLight
+struct PointLight
 {
 	glm::vec3 position;
 	glm::vec3 color;
@@ -118,6 +118,13 @@ int main() {
 
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
+
+	// lighting & material settings
+	float ambCoefficient = 0.2f;
+	float difCoefficient = 0.8f;
+	float specCoefficient = 0.8f;
+	int shininess = 64.0f;
+	glm::vec3 objColor = glm::vec3(0.5f, 0.5f, 0.5f);
 
 	ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
@@ -185,10 +192,10 @@ int main() {
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
 
-		litShader.setVec3("cameraPos", camera.getPosition());
+		litShader.setVec3("_CameraPos", camera.getPosition());
 
 		// Set some lighting uniforms
-		
+		// Directional Lights
 		for (size_t i = 0; i < 1; i++)
 		{
 			litShader.setVec3("_Lights[" + std::to_string(i) + "].position", lightTransform.position);
@@ -214,6 +221,13 @@ int main() {
 		litShader.setMat4("_Model", planeTransform.getModelMatrix());
 		planeMesh.draw();
 
+		// coefficients
+		litShader.setFloat("_Material.ambientCoefficient", ambCoefficient);
+		litShader.setFloat("_Material.diffuseCoefficient", difCoefficient);
+		litShader.setFloat("_Material.specularCoefficient", specCoefficient);
+		litShader.setFloat("_Material.shininess", shininess);
+		litShader.setVec3("_Material.objColor", objColor);
+
 		//Draw light as a small sphere using unlit shader, ironically.
 		unlitShader.use();
 		unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
@@ -226,7 +240,13 @@ int main() {
 		ImGui::Begin("Settings");
 
 		ImGui::ColorEdit3("Light Color", &dirLight.color.r);
+		ImGui::ColorEdit3("Material Color", &objColor.r);
 		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
+		ImGui::DragFloat("Ambient Coefficient", &ambCoefficient, 0.01f, 0.0f, 1.0f);
+		ImGui::DragFloat("Diffuse Coefficient", &difCoefficient, 0.01f, 0.0f, 1.0f);
+		ImGui::DragFloat("Specular Coefficient", &specCoefficient, 0.01f, 0.0f, 1.0f);
+		ImGui::DragInt("Shininess", &shininess, 2, 2, 512);
+
 		ImGui::End();
 
 		ImGui::Render();

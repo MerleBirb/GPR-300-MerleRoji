@@ -14,7 +14,17 @@ struct Light
     float intensity;
 };
 
-uniform vec3 cameraPos;
+struct Material
+{
+    float ambientCoefficient;
+    float diffuseCoefficient;
+    float specularCoefficient;
+    float shininess;
+    vec3 objColor;
+};
+
+uniform vec3 _CameraPos;
+uniform Material _Material;
 
 // const int MAX_LIGHTS 8
 #define MAX_LIGHTS 8
@@ -41,25 +51,39 @@ vec3 diffuse(float difCoefficient, vec3 toLightDir, vec3 surfaceNormal, vec3 col
 vec3 specular(float specCoefficient, vec3 toLightDir, vec3 surfaceNormal, float shininess, vec3 color)
 {
     vec3 specularLight;
-    vec3 viewerDir = normalize(cameraPos - v_out.WorldPosition);
-    vec3 reflectDir = reflect(-toLightDir, surfaceNormal);
+    vec3 viewerDir = normalize(_CameraPos - v_out.WorldPosition);
+    //vec3 reflectDir = reflect(-toLightDir, surfaceNormal);
 
-    specularLight = specCoefficient * pow(max(dot(reflectDir, viewerDir), 0), shininess) * color;
+    vec3 halfVector = normalize(viewerDir + toLightDir); // blinn phong
+
+    specularLight = specCoefficient * pow(max(dot(surfaceNormal, halfVector), 0), shininess) * color;
 
     return specularLight;
 }
 
+vec3 calculateLight(Light light)
+{
+    vec3 lightColor = vec3(0);
+
+    vec3 normal = normalize(v_out.WorldNormal);
+    vec3 toLightDir = normalize(light.position - v_out.WorldPosition);
+
+    vec3 ambientLight = ambient(_Material.ambientCoefficient, light.color);
+    vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color);
+    vec3 specularLight = specular(_Material.specularCoefficient, toLightDir, normal, _Material.shininess, light.color);
+
+    lightColor = ambientLight + diffuseLight + specularLight;
+    return lightColor;
+}
+
 void main()
 {
-    vec3 normal = normalize(v_out.WorldNormal);
-
     vec3 color = vec3(0);
-    vec3 toLightDir = normalize(_Lights[0].position - v_out.WorldPosition);
-    vec3 ambientLight = ambient(0.2f, _Lights[0].color);
-    vec3 diffuseLight = diffuse(0.8f, toLightDir, normal, _Lights[0].color);
-    vec3 specularLight = specular(0.5f, toLightDir, normal, 64f, _Lights[0].color);
+    
+    for(int i = 0; i < MAX_LIGHTS; i++)
+    {
+        color += calculateLight(_Lights[i]);
+    }
 
-    color = ambientLight + diffuseLight + specularLight;
-
-    FragColor = vec4(color,1.0f);
+    FragColor = vec4(_Material.objColor * color,1.0f);
 }

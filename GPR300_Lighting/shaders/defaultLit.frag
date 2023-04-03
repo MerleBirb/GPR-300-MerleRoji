@@ -7,11 +7,30 @@ in struct Vertex
     vec3 WorldPosition;
 }v_out;
 
-struct Light
+struct DirectionalLight
+{
+    vec3 direction;
+    vec3 color;
+    float intensity;
+};
+
+struct PointLight
 {
     vec3 position;
     vec3 color;
     float intensity;
+    float attenuation;
+};
+
+struct SpotLight
+{
+    vec3 position;
+    vec3 direction;
+    vec3 color;
+    float intensity;
+    float attenuation;
+    float minAngle;
+    float maxAngle;
 };
 
 struct Material
@@ -26,9 +45,9 @@ struct Material
 uniform vec3 _CameraPos;
 uniform Material _Material;
 
-// const int MAX_LIGHTS 8
-#define MAX_LIGHTS 8
-uniform Light _Lights[MAX_LIGHTS];
+// const int
+#define MAX_DIR_LIGHTS 1
+uniform DirectionalLight _DirLights[MAX_DIR_LIGHTS];
 
 vec3 ambient(float coefficient, vec3 color)
 {
@@ -61,12 +80,12 @@ vec3 specular(float specCoefficient, vec3 toLightDir, vec3 surfaceNormal, float 
     return specularLight;
 }
 
-vec3 calculateLight(Light light)
+vec3 calculateDirLight(DirectionalLight light)
 {
     vec3 lightColor = vec3(0);
 
     vec3 normal = normalize(v_out.WorldNormal);
-    vec3 toLightDir = normalize(light.position - v_out.WorldPosition);
+    vec3 toLightDir = normalize(light.direction - v_out.WorldPosition);
 
     vec3 ambientLight = ambient(_Material.ambientCoefficient, light.color);
     vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color);
@@ -80,10 +99,15 @@ void main()
 {
     vec3 color = vec3(0);
     
-    for(int i = 0; i < MAX_LIGHTS; i++)
+    // directional lights
+    for(int i = 0; i < MAX_DIR_LIGHTS; i++)
     {
-        color += calculateLight(_Lights[i]);
+        color += calculateDirLight(_DirLights[i]);
     }
+
+    // point lights
+
+    // spotlights
 
     FragColor = vec4(_Material.objColor * color,1.0f);
 }

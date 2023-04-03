@@ -56,13 +56,6 @@ glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, 0.0f);
 
 bool wireFrame = false;
 
-struct PointLight
-{
-	glm::vec3 position;
-	glm::vec3 color;
-	float intensity;
-};
-
 struct DirectionalLight
 {
 	glm::vec3 direction;
@@ -70,7 +63,30 @@ struct DirectionalLight
 	float intensity;
 };
 
-DirectionalLight dirLight;
+const int MAX_DIR_LIGHTS = 1;
+
+struct PointLight
+{
+	glm::vec3 position;
+	glm::vec3 color;
+	float intensity;
+	float attenuation;
+};
+
+const int MAX_PNT_LIGHTS = 2;
+
+struct SpotLight
+{
+	glm::vec3 position;
+	glm::vec3 direction;
+	glm::vec3 color;
+	float intensity;
+	float attenuation;
+	float minAngle;
+	float maxAngle;
+};
+
+const int MAX_SPOT_LIGHTS = 1;
 
 // NOTES:
 /*
@@ -119,13 +135,34 @@ int main() {
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
 
-	// lighting & material settings
+	//material settings
 	float ambCoefficient = 0.2f;
 	float difCoefficient = 0.8f;
 	float specCoefficient = 0.8f;
 	int shininess = 64.0f;
 	glm::vec3 objColor = glm::vec3(0.5f, 0.5f, 0.5f);
 
+	/// DIRECTIONAL LIGHT
+	// create lighting
+	DirectionalLight dirLight[MAX_DIR_LIGHTS];
+
+	// light settings
+	ew::Transform dirLightTransform;
+	dirLightTransform.scale = glm::vec3(0.5f);
+	dirLightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
+
+	for (size_t i = 0; i < MAX_DIR_LIGHTS; i++)
+	{
+		dirLight[i].direction = dirLightTransform.position;
+		dirLight[i].color = glm::vec3(0.5f, 0.5f, 0.5f);
+		dirLight[i].intensity = 1.0f;
+	}
+
+	/// POINT LIGHT
+
+	/// SPOTLIGHT
+
+	// create mesh data
 	ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
 	ew::MeshData sphereMeshData;
@@ -157,7 +194,6 @@ int main() {
 	ew::Transform sphereTransform;
 	ew::Transform planeTransform;
 	ew::Transform cylinderTransform;
-	ew::Transform lightTransform;
 
 	cubeTransform.position = glm::vec3(-2.0f, 0.0f, 0.0f);
 	sphereTransform.position = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -166,13 +202,6 @@ int main() {
 	planeTransform.scale = glm::vec3(10.0f);
 
 	cylinderTransform.position = glm::vec3(2.0f, 0.0f, 0.0f);
-
-	lightTransform.scale = glm::vec3(0.5f);
-	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
-
-	dirLight.direction = lightTransform.position;
-	dirLight.color = glm::vec3(0.5f, 0.5f, 0.5f);
-	dirLight.intensity = 1.0f;
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -196,14 +225,24 @@ int main() {
 
 		// Set some lighting uniforms
 		// Directional Lights
-		for (size_t i = 0; i < 1; i++)
+		for (size_t i = 0; i < MAX_DIR_LIGHTS; i++)
 		{
-			litShader.setVec3("_Lights[" + std::to_string(i) + "].position", lightTransform.position);
-			litShader.setVec3("_Lights[" + std::to_string(i) + "].color", dirLight.color);
-			litShader.setFloat("_Lights[" + std::to_string(i) + "].intensity", dirLight.intensity);
+			litShader.setVec3("_DirLights[" + std::to_string(i) + "].direction", dirLightTransform.position);
+			litShader.setVec3("_DirLights[" + std::to_string(i) + "].color", dirLight[i].color);
+			litShader.setFloat("_DirLights[" + std::to_string(i) + "].intensity", dirLight[i].intensity);
 		}
 
-		//cubeTransform.rotation.x += deltaTime;
+		// Point Lights
+		for (size_t i = 0; i < MAX_PNT_LIGHTS; i++)
+		{
+
+		}
+
+		// Spotlights
+		for (size_t i = 0; i < MAX_SPOT_LIGHTS; i++)
+		{
+
+		}
 
 		//Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
@@ -232,16 +271,16 @@ int main() {
 		unlitShader.use();
 		unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
 		unlitShader.setMat4("_View", camera.getViewMatrix());
-		unlitShader.setMat4("_Model", lightTransform.getModelMatrix());
+		unlitShader.setMat4("_Model", dirLightTransform.getModelMatrix());
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
 
 		//Draw UI
 		ImGui::Begin("Settings");
 
-		ImGui::ColorEdit3("Light Color", &dirLight.color.r);
 		ImGui::ColorEdit3("Material Color", &objColor.r);
-		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
+		ImGui::ColorEdit3("Directional Light Color 1", &dirLight[0].color.r);
+		ImGui::DragFloat3("Directional Light Position", &dirLightTransform.position.x);
 		ImGui::DragFloat("Ambient Coefficient", &ambCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Diffuse Coefficient", &difCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Specular Coefficient", &specCoefficient, 0.01f, 0.0f, 1.0f);

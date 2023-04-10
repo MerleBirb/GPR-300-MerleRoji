@@ -288,25 +288,19 @@ int main() {
 		litShader.setVec3("_Material.objColor", objColor);
 
 		//Draw light as a small sphere using unlit shader, ironically.
-		//Directional Light
 		unlitShader.use();
 		unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
 		unlitShader.setMat4("_View", camera.getViewMatrix());
+
+		//Directional Light
 		unlitShader.setMat4("_Model", dirLightTransform.getModelMatrix());
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
 
 		// Point light
-		unlitShader.use();
-		unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
-		unlitShader.setMat4("_View", camera.getViewMatrix());
 		unlitShader.setMat4("_Model", pntLightTransform[0].getModelMatrix());
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
-
-		unlitShader.use();
-		unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
-		unlitShader.setMat4("_View", camera.getViewMatrix());
 		unlitShader.setMat4("_Model", pntLightTransform[1].getModelMatrix());
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
@@ -316,14 +310,14 @@ int main() {
 
 		ImGui::ColorEdit3("Material Color", &objColor.r);
 		ImGui::ColorEdit3("Directional Light Color", &dirLight[0].color.r);
-		ImGui::DragFloat3("Directional Light Position", &dirLightTransform.position.x);
-		ImGui::DragFloat("Directional Light Intensity", &dirLight[0].intensity);
+		ImGui::DragFloat3("Directional Light Position", &dirLightTransform.position.x, 0.1f);
+		ImGui::DragFloat("Directional Light Intensity", &dirLight[0].intensity, 0.1f);
 		ImGui::ColorEdit3("Point Light Color 1", &pntLight[0].color.r);
 		ImGui::ColorEdit3("Point Light Color 2", &pntLight[1].color.r);
-		ImGui::DragFloat3("Point Light Position 1", &pntLightTransform[0].position.x);
-		ImGui::DragFloat3("Point Light Position 2", &pntLightTransform[1].position.x);
-		ImGui::DragFloat("Point Light Intensity 1", &pntLight[0].intensity);
-		ImGui::DragFloat("Point Light Intensity 2", &pntLight[1].intensity);
+		ImGui::DragFloat3("Point Light Position 1", &pntLightTransform[0].position.x, 0.1f);
+		ImGui::DragFloat3("Point Light Position 2", &pntLightTransform[1].position.x, 0.1f);
+		ImGui::DragFloat("Point Light Intensity 1", &pntLight[0].intensity, 0.1f);
+		ImGui::DragFloat("Point Light Intensity 2", &pntLight[1].intensity, 0.1f);
 		ImGui::DragFloat("Ambient Coefficient", &ambCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Diffuse Coefficient", &difCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Specular Coefficient", &specCoefficient, 0.01f, 0.0f, 1.0f);

@@ -28,7 +28,6 @@ struct SpotLight
     vec3 direction;
     vec3 color;
     float intensity;
-    float attenuation;
     float minAngle;
     float maxAngle;
 };
@@ -85,6 +84,11 @@ vec3 specular(float specCoefficient, vec3 toLightDir, vec3 surfaceNormal, float 
     return specularLight;
 }
 
+float attenuation(float dist, float radius)
+{
+    return pow((radius / max(radius, dist)), 2);
+}
+
 vec3 calculateDirLight(DirectionalLight light)
 {
     vec3 lightColor = vec3(0);
@@ -107,15 +111,30 @@ vec3 calculatePointLight(PointLight light)
     vec3 normal = normalize(v_out.WorldNormal);
     vec3 toLightDir = normalize(light.position - v_out.WorldPosition);
     float dist = length(light.position - v_out.WorldPosition);
-    float attenuation = pow((light.radius / max(light.radius, dist)), 2);
+    float att = attenuation(dist, light.radius);
 
     vec3 ambientLight = ambient(_Material.ambientCoefficient, light.color);
     vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color);
     vec3 specularLight = specular(_Material.specularCoefficient, toLightDir, normal, _Material.shininess, light.color);
 
-    ambientLight *= attenuation;
-    diffuseLight *= attenuation;
-    specularLight *= attenuation;
+    ambientLight *= att;
+    diffuseLight *= att;
+    specularLight *= att;
+
+    lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity;
+    return lightColor;
+}
+
+vec3 calculateSpotLight(SpotLight light)
+{
+    vec3 lightColor = vec3(0);
+
+    vec3 normal = normalize(v_out.WorldNormal);
+    vec3 toLightDir = normalize(light.direction - v_out.WorldPosition);
+
+    vec3 ambientLight = ambient(_Material.ambientCoefficient, light.color);
+    vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color);
+    vec3 specularLight = specular(_Material.specularCoefficient, toLightDir, normal, _Material.shininess, light.color);
 
     lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity;
     return lightColor;

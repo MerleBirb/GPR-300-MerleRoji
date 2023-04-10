@@ -18,8 +18,8 @@ struct PointLight
 {
     vec3 position;
     vec3 color;
+    float radius;
     float intensity;
-    float attenuation;
 };
 
 struct SpotLight
@@ -45,9 +45,14 @@ struct Material
 uniform vec3 _CameraPos;
 uniform Material _Material;
 
-// const int
 #define MAX_DIR_LIGHTS 1
 uniform DirectionalLight _DirLights[MAX_DIR_LIGHTS];
+
+#define MAX_PNT_LIGHTS 2
+uniform PointLight _PntLights[MAX_PNT_LIGHTS];
+
+#define MAX_SPT_LIGHTS 1
+uniform SpotLight _SptLights[MAX_SPT_LIGHTS];
 
 vec3 ambient(float coefficient, vec3 color)
 {
@@ -91,7 +96,28 @@ vec3 calculateDirLight(DirectionalLight light)
     vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color);
     vec3 specularLight = specular(_Material.specularCoefficient, toLightDir, normal, _Material.shininess, light.color);
 
-    lightColor = ambientLight + diffuseLight + specularLight;
+    lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity;
+    return lightColor;
+}
+
+vec3 calculatePointLight(PointLight light)
+{
+    vec3 lightColor = vec3(0);
+
+    vec3 normal = normalize(v_out.WorldNormal);
+    vec3 toLightDir = normalize(light.position - v_out.WorldPosition);
+    float dist = length(light.position - v_out.WorldPosition);
+    float attenuation = pow((light.radius / max(light.radius, dist)), 2);
+
+    vec3 ambientLight = ambient(_Material.ambientCoefficient, light.color);
+    vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color);
+    vec3 specularLight = specular(_Material.specularCoefficient, toLightDir, normal, _Material.shininess, light.color);
+
+    ambientLight *= attenuation;
+    diffuseLight *= attenuation;
+    specularLight *= attenuation;
+
+    lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity;
     return lightColor;
 }
 
@@ -100,14 +126,18 @@ void main()
     vec3 color = vec3(0);
     
     // directional lights
-    for(int i = 0; i < MAX_DIR_LIGHTS; i++)
+    for(int d = 0; d < MAX_DIR_LIGHTS; d++)
     {
-        color += calculateDirLight(_DirLights[i]);
+        color += calculateDirLight(_DirLights[d]);
     }
 
     // point lights
+    for(int p = 0; p < MAX_PNT_LIGHTS; p++)
+    {
+        color += calculatePointLight(_PntLights[p]); 
+    }
 
     // spotlights
 
-    FragColor = vec4(_Material.objColor * color,1.0f);
+    FragColor = vec4(_Material.objColor * color, 1.0f);
 }

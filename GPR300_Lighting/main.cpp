@@ -69,8 +69,8 @@ struct PointLight
 {
 	glm::vec3 position;
 	glm::vec3 color;
+	float radius;
 	float intensity;
-	float attenuation;
 };
 
 const int MAX_PNT_LIGHTS = 2;
@@ -151,14 +151,31 @@ int main() {
 	dirLightTransform.scale = glm::vec3(0.5f);
 	dirLightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
-	for (size_t i = 0; i < MAX_DIR_LIGHTS; i++)
+	for (size_t d = 0; d < MAX_DIR_LIGHTS; d++)
 	{
-		dirLight[i].direction = dirLightTransform.position;
-		dirLight[i].color = glm::vec3(0.5f, 0.5f, 0.5f);
-		dirLight[i].intensity = 1.0f;
+		dirLight[d].direction = dirLightTransform.position;
+		dirLight[d].color = glm::vec3(0.5f, 0.5f, 0.5f);
+		dirLight[d].intensity = 1.0f;
 	}
 
 	/// POINT LIGHT
+	// create lighting
+	PointLight pntLight[MAX_PNT_LIGHTS];
+
+	// light settings
+	ew::Transform pntLightTransform[MAX_PNT_LIGHTS];
+
+	for (size_t p = 0; p < MAX_PNT_LIGHTS; p++)
+	{
+		pntLightTransform[p].scale = glm::vec3(0.5f);
+		pntLightTransform[0].position = glm::vec3(0.5f, 2.0f, 1.5f);
+		pntLightTransform[1].position = glm::vec3(-0.5f, 2.0f, 1.5f);
+
+		pntLight[p].position = pntLightTransform[p].position;
+		pntLight[p].color = glm::vec3(0.5f, 0.5f, 0.5f);
+		pntLight[p].radius = pntLightTransform[p].scale.x;
+		pntLight[p].intensity = 1.0f;
+	}
 
 	/// SPOTLIGHT
 
@@ -225,17 +242,20 @@ int main() {
 
 		// Set some lighting uniforms
 		// Directional Lights
-		for (size_t i = 0; i < MAX_DIR_LIGHTS; i++)
+		for (size_t d = 0; d < MAX_DIR_LIGHTS; d++)
 		{
-			litShader.setVec3("_DirLights[" + std::to_string(i) + "].direction", dirLightTransform.position);
-			litShader.setVec3("_DirLights[" + std::to_string(i) + "].color", dirLight[i].color);
-			litShader.setFloat("_DirLights[" + std::to_string(i) + "].intensity", dirLight[i].intensity);
+			litShader.setVec3("_DirLights[" + std::to_string(d) + "].direction", dirLightTransform.position);
+			litShader.setVec3("_DirLights[" + std::to_string(d) + "].color", dirLight[d].color);
+			litShader.setFloat("_DirLights[" + std::to_string(d) + "].intensity", dirLight[d].intensity);
 		}
 
 		// Point Lights
-		for (size_t i = 0; i < MAX_PNT_LIGHTS; i++)
+		for (size_t p = 0; p < MAX_PNT_LIGHTS; p++)
 		{
-
+			litShader.setVec3("_PntLights[" + std::to_string(p) + "].position", pntLightTransform[p].position);
+			litShader.setVec3("_PntLights[" + std::to_string(p) + "].color", pntLight[p].color);
+			litShader.setFloat("_PntLights[" + std::to_string(p) + "].radius", pntLight[p].radius);
+			litShader.setFloat("_PntLights[" + std::to_string(p) + "].intensity", pntLight[p].intensity);
 		}
 
 		// Spotlights
@@ -268,6 +288,7 @@ int main() {
 		litShader.setVec3("_Material.objColor", objColor);
 
 		//Draw light as a small sphere using unlit shader, ironically.
+		//Directional Light
 		unlitShader.use();
 		unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
 		unlitShader.setMat4("_View", camera.getViewMatrix());
@@ -275,12 +296,34 @@ int main() {
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
 
+		// Point light
+		unlitShader.use();
+		unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
+		unlitShader.setMat4("_View", camera.getViewMatrix());
+		unlitShader.setMat4("_Model", pntLightTransform[0].getModelMatrix());
+		unlitShader.setVec3("_Color", lightColor);
+		sphereMesh.draw();
+
+		unlitShader.use();
+		unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
+		unlitShader.setMat4("_View", camera.getViewMatrix());
+		unlitShader.setMat4("_Model", pntLightTransform[1].getModelMatrix());
+		unlitShader.setVec3("_Color", lightColor);
+		sphereMesh.draw();
+
 		//Draw UI
 		ImGui::Begin("Settings");
 
 		ImGui::ColorEdit3("Material Color", &objColor.r);
-		ImGui::ColorEdit3("Directional Light Color 1", &dirLight[0].color.r);
+		ImGui::ColorEdit3("Directional Light Color", &dirLight[0].color.r);
 		ImGui::DragFloat3("Directional Light Position", &dirLightTransform.position.x);
+		ImGui::DragFloat("Directional Light Intensity", &dirLight[0].intensity);
+		ImGui::ColorEdit3("Point Light Color 1", &pntLight[0].color.r);
+		ImGui::ColorEdit3("Point Light Color 2", &pntLight[1].color.r);
+		ImGui::DragFloat3("Point Light Position 1", &pntLightTransform[0].position.x);
+		ImGui::DragFloat3("Point Light Position 2", &pntLightTransform[1].position.x);
+		ImGui::DragFloat("Point Light Intensity 1", &pntLight[0].intensity);
+		ImGui::DragFloat("Point Light Intensity 2", &pntLight[1].intensity);
 		ImGui::DragFloat("Ambient Coefficient", &ambCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Diffuse Coefficient", &difCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Specular Coefficient", &specCoefficient, 0.01f, 0.0f, 1.0f);

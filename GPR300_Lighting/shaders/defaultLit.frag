@@ -89,6 +89,11 @@ float attenuation(float dist, float radius)
     return clamp(pow((radius / max(radius, dist)), 2), 0, 1);
 }
 
+float angularAttenuation(float theta, float minAngle, float maxAngle, float fallOffCurve)
+{
+    return clamp(pow((theta - maxAngle)/(minAngle - maxAngle), fallOffCurve), 0, 1);
+}
+
 vec3 calculateDirLight(DirectionalLight light)
 {
     vec3 lightColor = vec3(0);
@@ -132,9 +137,16 @@ vec3 calculateSpotLight(SpotLight light)
     vec3 normal = normalize(v_out.WorldNormal);
     vec3 toLightDir = normalize(light.direction - v_out.WorldPosition);
 
+    float theta = dot(toLightDir, light.direction);
+    float att = angularAttenuation(cos(radians(theta)), cos(radians(light.minAngle)), cos(radians(light.maxAngle)), 0.5);
+
     vec3 ambientLight = ambient(_Material.ambientCoefficient, light.color);
     vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color);
     vec3 specularLight = specular(_Material.specularCoefficient, toLightDir, normal, _Material.shininess, light.color);
+
+    ambientLight *= att;
+    diffuseLight *= att;
+    specularLight *= att;
 
     lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity;
     return lightColor;
@@ -157,6 +169,10 @@ void main()
     }
 
     // spotlights
+    for (int s = 0; s < MAX_SPT_LIGHTS; s++)
+    {
+        color += calculateDirLight(_DirLights[s]);
+    }
 
     FragColor = vec4(_Material.objColor * color, 1.0f);
 }

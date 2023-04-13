@@ -81,12 +81,11 @@ struct SpotLight
 	glm::vec3 direction;
 	glm::vec3 color;
 	float intensity;
-	float attenuation;
 	float minAngle;
 	float maxAngle;
 };
 
-const int MAX_SPOT_LIGHTS = 1;
+const int MAX_SPT_LIGHTS = 1;
 
 // NOTES:
 /*
@@ -144,7 +143,7 @@ int main() {
 
 	/// DIRECTIONAL LIGHT
 	// create lighting
-	DirectionalLight dirLight[MAX_DIR_LIGHTS];
+	DirectionalLight dirLights[MAX_DIR_LIGHTS];
 
 	// light settings
 	ew::Transform dirLightTransform;
@@ -153,31 +152,44 @@ int main() {
 
 	for (size_t d = 0; d < MAX_DIR_LIGHTS; d++)
 	{
-		dirLight[d].direction = dirLightTransform.position;
-		dirLight[d].color = glm::vec3(0.5f, 0.5f, 0.5f);
-		dirLight[d].intensity = 1.0f;
+		dirLights[d].direction = dirLightTransform.position;
+		dirLights[d].color = glm::vec3(0.5f, 0.5f, 0.5f);
+		dirLights[d].intensity = 1.0f;
 	}
 
 	/// POINT LIGHT
 	// create lighting
-	PointLight pntLight[MAX_PNT_LIGHTS];
+	PointLight pntLights[MAX_PNT_LIGHTS];
 
 	// light settings
-	ew::Transform pntLightTransform[MAX_PNT_LIGHTS];
+	ew::Transform pntLightTransforms[MAX_PNT_LIGHTS];
 
 	for (size_t p = 0; p < MAX_PNT_LIGHTS; p++)
 	{
-		pntLightTransform[p].scale = glm::vec3(0.5f);
-		pntLightTransform[0].position = glm::vec3(0.5f, 2.0f, 1.5f);
-		pntLightTransform[1].position = glm::vec3(-0.5f, 2.0f, 1.5f);
+		pntLightTransforms[p].scale = glm::vec3(0.5f);
+		pntLightTransforms[0].position = glm::vec3(0.5f, 2.0f, 1.5f);
+		pntLightTransforms[1].position = glm::vec3(-0.5f, 2.0f, 1.5f);
 
-		pntLight[p].position = pntLightTransform[p].position;
-		pntLight[p].color = glm::vec3(0.5f, 0.5f, 0.5f);
-		pntLight[p].radius = pntLightTransform[p].scale.x;
-		pntLight[p].intensity = 1.0f;
+		pntLights[p].position = pntLightTransforms[p].position;
+		pntLights[p].color = glm::vec3(0.5f, 0.5f, 0.5f);
+		pntLights[p].radius = pntLightTransforms[p].scale.x;
+		pntLights[p].intensity = 1.0f;
 	}
 
 	/// SPOTLIGHT
+	SpotLight sptLights[MAX_SPT_LIGHTS];
+	ew::Transform sptLightTransform;
+	sptLightTransform.scale = glm::vec3(0.5f);
+	sptLightTransform.position = glm::vec3(0.0f, 3.0f, 0.0f);
+
+	for (size_t s = 0; s < MAX_SPT_LIGHTS; s++)
+	{
+		sptLights[s].position = sptLightTransform.position;
+		sptLights[s].direction = sptLightTransform.position;
+		sptLights[s].color = glm::vec3(0.5f, 0.5f, 0.5f);
+		sptLights[s].intensity = 1.0f;
+		//sptLights[s].minAngle = cos(rad)
+	}
 
 	// create mesh data
 	ew::MeshData cubeMeshData;
@@ -245,21 +257,21 @@ int main() {
 		for (size_t d = 0; d < MAX_DIR_LIGHTS; d++)
 		{
 			litShader.setVec3("_DirLights[" + std::to_string(d) + "].direction", dirLightTransform.position);
-			litShader.setVec3("_DirLights[" + std::to_string(d) + "].color", dirLight[d].color);
-			litShader.setFloat("_DirLights[" + std::to_string(d) + "].intensity", dirLight[d].intensity);
+			litShader.setVec3("_DirLights[" + std::to_string(d) + "].color", dirLights[d].color);
+			litShader.setFloat("_DirLights[" + std::to_string(d) + "].intensity", dirLights[d].intensity);
 		}
 
 		// Point Lights
 		for (size_t p = 0; p < MAX_PNT_LIGHTS; p++)
 		{
-			litShader.setVec3("_PntLights[" + std::to_string(p) + "].position", pntLightTransform[p].position);
-			litShader.setVec3("_PntLights[" + std::to_string(p) + "].color", pntLight[p].color);
-			litShader.setFloat("_PntLights[" + std::to_string(p) + "].radius", pntLight[p].radius);
-			litShader.setFloat("_PntLights[" + std::to_string(p) + "].intensity", pntLight[p].intensity);
+			litShader.setVec3("_PntLights[" + std::to_string(p) + "].position", pntLightTransforms[p].position);
+			litShader.setVec3("_PntLights[" + std::to_string(p) + "].color", pntLights[p].color);
+			litShader.setFloat("_PntLights[" + std::to_string(p) + "].radius", pntLights[p].radius);
+			litShader.setFloat("_PntLights[" + std::to_string(p) + "].intensity", pntLights[p].intensity);
 		}
 
 		// Spotlights
-		for (size_t i = 0; i < MAX_SPOT_LIGHTS; i++)
+		for (size_t i = 0; i < MAX_SPT_LIGHTS; i++)
 		{
 
 		}
@@ -298,10 +310,10 @@ int main() {
 		sphereMesh.draw();
 
 		// Point light
-		unlitShader.setMat4("_Model", pntLightTransform[0].getModelMatrix());
+		unlitShader.setMat4("_Model", pntLightTransforms[0].getModelMatrix());
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
-		unlitShader.setMat4("_Model", pntLightTransform[1].getModelMatrix());
+		unlitShader.setMat4("_Model", pntLightTransforms[1].getModelMatrix());
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
 
@@ -309,15 +321,15 @@ int main() {
 		ImGui::Begin("Settings");
 
 		ImGui::ColorEdit3("Material Color", &objColor.r);
-		ImGui::ColorEdit3("Directional Light Color", &dirLight[0].color.r);
+		ImGui::ColorEdit3("Directional Light Color", &dirLights[0].color.r);
 		ImGui::DragFloat3("Directional Light Position", &dirLightTransform.position.x, 0.1f);
-		ImGui::DragFloat("Directional Light Intensity", &dirLight[0].intensity, 0.1f);
-		ImGui::ColorEdit3("Point Light Color 1", &pntLight[0].color.r);
-		ImGui::ColorEdit3("Point Light Color 2", &pntLight[1].color.r);
-		ImGui::DragFloat3("Point Light Position 1", &pntLightTransform[0].position.x, 0.1f);
-		ImGui::DragFloat3("Point Light Position 2", &pntLightTransform[1].position.x, 0.1f);
-		ImGui::DragFloat("Point Light Intensity 1", &pntLight[0].intensity, 0.1f);
-		ImGui::DragFloat("Point Light Intensity 2", &pntLight[1].intensity, 0.1f);
+		ImGui::DragFloat("Directional Light Intensity", &dirLights[0].intensity, 0.1f);
+		ImGui::ColorEdit3("Point Light Color 1", &pntLights[0].color.r);
+		ImGui::ColorEdit3("Point Light Color 2", &pntLights[1].color.r);
+		ImGui::DragFloat3("Point Light Position 1", &pntLightTransforms[0].position.x, 0.1f);
+		ImGui::DragFloat3("Point Light Position 2", &pntLightTransforms[1].position.x, 0.1f);
+		ImGui::DragFloat("Point Light Intensity 1", &pntLights[0].intensity, 0.1f);
+		ImGui::DragFloat("Point Light Intensity 2", &pntLights[1].intensity, 0.1f);
 		ImGui::DragFloat("Ambient Coefficient", &ambCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Diffuse Coefficient", &difCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Specular Coefficient", &specCoefficient, 0.01f, 0.0f, 1.0f);

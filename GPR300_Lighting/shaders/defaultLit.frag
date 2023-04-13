@@ -86,7 +86,7 @@ vec3 specular(float specCoefficient, vec3 toLightDir, vec3 surfaceNormal, float 
 
 float attenuation(float dist, float radius)
 {
-    return pow((radius / max(radius, dist)), 2);
+    return clamp(pow((radius / max(radius, dist)), 2), 0, 1);
 }
 
 vec3 calculateDirLight(DirectionalLight light)

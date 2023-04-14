@@ -64,6 +64,7 @@ struct DirectionalLight
 };
 
 const int MAX_DIR_LIGHTS = 1;
+int numDirLights = MAX_DIR_LIGHTS;
 
 struct PointLight
 {
@@ -74,6 +75,7 @@ struct PointLight
 };
 
 const int MAX_PNT_LIGHTS = 2;
+int numPntLights = MAX_PNT_LIGHTS;
 
 struct SpotLight
 {
@@ -86,6 +88,7 @@ struct SpotLight
 };
 
 const int MAX_SPT_LIGHTS = 1;
+int numSptLights = MAX_SPT_LIGHTS;
 
 // NOTES:
 /*
@@ -185,10 +188,11 @@ int main() {
 	for (size_t s = 0; s < MAX_SPT_LIGHTS; s++)
 	{
 		sptLights[s].position = sptLightTransform.position;
-		sptLights[s].direction = sptLightTransform.position;
+		sptLights[s].direction = -glm::normalize(sptLightTransform.position);
 		sptLights[s].color = glm::vec3(0.5f, 0.5f, 0.5f);
 		sptLights[s].intensity = 1.0f;
-		//sptLights[s].minAngle = cos(rad)
+		sptLights[s].minAngle = cos(glm::radians(30.0f));
+		sptLights[s].maxAngle = cos(glm::radians(60.0f));
 	}
 
 	// create mesh data
@@ -254,7 +258,8 @@ int main() {
 
 		// Set some lighting uniforms
 		// Directional Lights
-		for (size_t d = 0; d < MAX_DIR_LIGHTS; d++)
+		litShader.setInt("_NumDirLights", numDirLights);
+		for (size_t d = 0; d < numDirLights; d++)
 		{
 			litShader.setVec3("_DirLights[" + std::to_string(d) + "].direction", dirLightTransform.position);
 			litShader.setVec3("_DirLights[" + std::to_string(d) + "].color", dirLights[d].color);
@@ -262,7 +267,8 @@ int main() {
 		}
 
 		// Point Lights
-		for (size_t p = 0; p < MAX_PNT_LIGHTS; p++)
+		litShader.setInt("_NumPntLights", numPntLights);
+		for (size_t p = 0; p < numPntLights; p++)
 		{
 			litShader.setVec3("_PntLights[" + std::to_string(p) + "].position", pntLightTransforms[p].position);
 			litShader.setVec3("_PntLights[" + std::to_string(p) + "].color", pntLights[p].color);
@@ -271,9 +277,15 @@ int main() {
 		}
 
 		// Spotlights
-		for (size_t i = 0; i < MAX_SPT_LIGHTS; i++)
+		litShader.setInt("_NumSptLights", numSptLights);
+		for (size_t s = 0; s < numSptLights; s++)
 		{
-
+			litShader.setVec3("_SptLights[" + std::to_string(s) + "].position", sptLightTransform.position);
+			litShader.setVec3("_SptLights[" + std::to_string(s) + "].direction", sptLights[s].direction);
+			litShader.setVec3("_SptLights[" + std::to_string(s) + "].color", sptLights[s].color);
+			litShader.setFloat("_SptLights[" + std::to_string(s) + "].intensity", sptLights[s].intensity);
+			litShader.setFloat("_SptLights[" + std::to_string(s) + "].minAngle", sptLights[s].minAngle);
+			litShader.setFloat("_SptLights[" + std::to_string(s) + "].maxAngle", sptLights[s].maxAngle);
 		}
 
 		//Draw cube
@@ -317,19 +329,32 @@ int main() {
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
 
+		// Spot Light
+		unlitShader.setMat4("_Model", sptLightTransform.getModelMatrix());
+		unlitShader.setVec3("_Color", lightColor);
+		sphereMesh.draw();
+
 		//Draw UI
 		ImGui::Begin("Settings");
 
 		ImGui::ColorEdit3("Material Color", &objColor.r);
+		ImGui::DragInt("Num of Directional Lights", &numDirLights, 1, 0, MAX_DIR_LIGHTS);
 		ImGui::ColorEdit3("Directional Light Color", &dirLights[0].color.r);
 		ImGui::DragFloat3("Directional Light Position", &dirLightTransform.position.x, 0.1f);
 		ImGui::DragFloat("Directional Light Intensity", &dirLights[0].intensity, 0.1f);
+		ImGui::DragInt("Num of Point Lights", &numPntLights, 1, 0, MAX_PNT_LIGHTS);
 		ImGui::ColorEdit3("Point Light Color 1", &pntLights[0].color.r);
 		ImGui::ColorEdit3("Point Light Color 2", &pntLights[1].color.r);
 		ImGui::DragFloat3("Point Light Position 1", &pntLightTransforms[0].position.x, 0.1f);
 		ImGui::DragFloat3("Point Light Position 2", &pntLightTransforms[1].position.x, 0.1f);
 		ImGui::DragFloat("Point Light Intensity 1", &pntLights[0].intensity, 0.1f);
 		ImGui::DragFloat("Point Light Intensity 2", &pntLights[1].intensity, 0.1f);
+		ImGui::DragInt("Num of Spot Lights", &numSptLights, 1, 0, MAX_SPT_LIGHTS);
+		ImGui::DragFloat3("Spot Light Position", &sptLightTransform.position.x, 0.1f);
+		ImGui::DragFloat("Spot Light Intensity", &sptLights[0].intensity, 0.1f);
+		ImGui::ColorEdit3("Spot Light Color", &sptLights[0].color.r);
+		ImGui::DragFloat("Spot Light Min Angle", &sptLights[0].minAngle, 0.1f);
+		ImGui::DragFloat("Spot Light Max Angle", &sptLights[0].maxAngle, 0.1f);
 		ImGui::DragFloat("Ambient Coefficient", &ambCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Diffuse Coefficient", &difCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Specular Coefficient", &specCoefficient, 0.01f, 0.0f, 1.0f);

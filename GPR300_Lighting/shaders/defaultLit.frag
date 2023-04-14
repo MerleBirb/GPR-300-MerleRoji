@@ -45,12 +45,15 @@ uniform vec3 _CameraPos;
 uniform Material _Material;
 
 #define MAX_DIR_LIGHTS 1
+uniform int _NumDirLights = MAX_DIR_LIGHTS;
 uniform DirectionalLight _DirLights[MAX_DIR_LIGHTS];
 
 #define MAX_PNT_LIGHTS 2
+uniform int _NumPntLights = MAX_PNT_LIGHTS;
 uniform PointLight _PntLights[MAX_PNT_LIGHTS];
 
 #define MAX_SPT_LIGHTS 1
+uniform int _NumSptLights = MAX_SPT_LIGHTS;
 uniform SpotLight _SptLights[MAX_SPT_LIGHTS];
 
 vec3 ambient(float coefficient, vec3 color)
@@ -91,7 +94,7 @@ float attenuation(float dist, float radius)
 
 float angularAttenuation(float theta, float minAngle, float maxAngle, float fallOffCurve)
 {
-    return clamp(pow((theta - maxAngle)/(minAngle - maxAngle), fallOffCurve), 0, 1);
+    return pow(clamp((theta - maxAngle)/(minAngle - maxAngle), 0, 1), fallOffCurve);
 }
 
 vec3 calculateDirLight(DirectionalLight light)
@@ -122,11 +125,7 @@ vec3 calculatePointLight(PointLight light)
     vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color);
     vec3 specularLight = specular(_Material.specularCoefficient, toLightDir, normal, _Material.shininess, light.color);
 
-    ambientLight *= att;
-    diffuseLight *= att;
-    specularLight *= att;
-
-    lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity;
+    lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity * att;
     return lightColor;
 }
 
@@ -135,20 +134,16 @@ vec3 calculateSpotLight(SpotLight light)
     vec3 lightColor = vec3(0);
 
     vec3 normal = normalize(v_out.WorldNormal);
-    vec3 toLightDir = normalize(light.direction - v_out.WorldPosition);
+    vec3 dirToFrag = normalize(v_out.WorldPosition - light.position);
 
-    float theta = dot(toLightDir, light.direction);
-    float att = angularAttenuation(cos(radians(theta)), cos(radians(light.minAngle)), cos(radians(light.maxAngle)), 0.5);
+    float theta = dot(dirToFrag, light.direction);
+    float att = angularAttenuation(theta, light.minAngle, light.maxAngle, 2);
 
     vec3 ambientLight = ambient(_Material.ambientCoefficient, light.color);
-    vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color);
-    vec3 specularLight = specular(_Material.specularCoefficient, toLightDir, normal, _Material.shininess, light.color);
+    vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, dirToFrag, normal, light.color);
+    vec3 specularLight = specular(_Material.specularCoefficient, dirToFrag, normal, _Material.shininess, light.color);
 
-    ambientLight *= att;
-    diffuseLight *= att;
-    specularLight *= att;
-
-    lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity;
+    lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity * att;
     return lightColor;
 }
 
@@ -157,21 +152,21 @@ void main()
     vec3 color = vec3(0);
     
     // directional lights
-    for(int d = 0; d < MAX_DIR_LIGHTS; d++)
+    for(int d = 0; d < _NumDirLights; d++)
     {
         color += calculateDirLight(_DirLights[d]);
     }
 
     // point lights
-    for(int p = 0; p < MAX_PNT_LIGHTS; p++)
+    for(int p = 0; p < _NumPntLights; p++)
     {
-        color += calculatePointLight(_PntLights[p]); 
+        color += calculatePointLight(_PntLights[p]);
     }
 
     // spotlights
-    for (int s = 0; s < MAX_SPT_LIGHTS; s++)
+    for (int s = 0; s < _NumSptLights; s++)
     {
-        color += calculateDirLight(_DirLights[s]);
+        color += calculateSpotLight(_SptLights[s]);
     }
 
     FragColor = vec4(_Material.objColor * color, 1.0f);

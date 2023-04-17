@@ -56,13 +56,6 @@ glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, 0.0f);
 
 bool wireFrame = false;
 
-struct BaseLight
-{
-	glm::vec3 position;
-	glm::vec3 color;
-	float intensity;
-};
-
 struct DirectionalLight
 {
 	glm::vec3 direction;
@@ -70,7 +63,32 @@ struct DirectionalLight
 	float intensity;
 };
 
-DirectionalLight dirLight;
+const int MAX_DIR_LIGHTS = 1;
+int numDirLights = MAX_DIR_LIGHTS;
+
+struct PointLight
+{
+	glm::vec3 position;
+	glm::vec3 color;
+	float radius;
+	float intensity;
+};
+
+const int MAX_PNT_LIGHTS = 2;
+int numPntLights = MAX_PNT_LIGHTS;
+
+struct SpotLight
+{
+	glm::vec3 position;
+	glm::vec3 direction;
+	glm::vec3 color;
+	float intensity;
+	float minAngle;
+	float maxAngle;
+};
+
+const int MAX_SPT_LIGHTS = 1;
+int numSptLights = MAX_SPT_LIGHTS;
 
 // NOTES:
 /*
@@ -119,23 +137,78 @@ int main() {
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
 
-	//ew::MeshData cubeMeshData;
-	//ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
-	//ew::MeshData sphereMeshData;
-	//ew::createSphere(0.5f, 64, sphereMeshData);
-	//ew::MeshData cylinderMeshData;
-	//ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
-	//ew::MeshData planeMeshData;
-	//ew::createPlane(1.0f, 1.0f, planeMeshData);
-	//
-	//ew::Mesh cubeMesh(&cubeMeshData);
-	//ew::Mesh sphereMesh(&sphereMeshData);
-	//ew::Mesh planeMesh(&planeMeshData);
-	//ew::Mesh cylinderMesh(&cylinderMeshData);
+	//material settings
+	float ambCoefficient = 0.2f;
+	float difCoefficient = 0.8f;
+	float specCoefficient = 0.8f;
+	int shininess = 64.0f;
+	glm::vec3 objColor = glm::vec3(0.5f, 0.5f, 0.5f);
 
-	ew::MeshData quadMeshData;
-	ew::createQuad(1.0f, 1.0f, quadMeshData);
-	ew::Mesh quadMesh(&quadMeshData);
+	/// DIRECTIONAL LIGHT
+	// create lighting
+	DirectionalLight dirLights[MAX_DIR_LIGHTS];
+
+	// light settings
+	ew::Transform dirLightTransform;
+	dirLightTransform.scale = glm::vec3(0.5f);
+	dirLightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
+
+	for (size_t d = 0; d < MAX_DIR_LIGHTS; d++)
+	{
+		dirLights[d].direction = dirLightTransform.position;
+		dirLights[d].color = glm::vec3(0.5f, 0.5f, 0.5f);
+		dirLights[d].intensity = 1.0f;
+	}
+
+	/// POINT LIGHT
+	// create lighting
+	PointLight pntLights[MAX_PNT_LIGHTS];
+
+	// light settings
+	ew::Transform pntLightTransforms[MAX_PNT_LIGHTS];
+
+	for (size_t p = 0; p < MAX_PNT_LIGHTS; p++)
+	{
+		pntLightTransforms[p].scale = glm::vec3(0.5f);
+		pntLightTransforms[0].position = glm::vec3(0.5f, 2.0f, 1.5f);
+		pntLightTransforms[1].position = glm::vec3(-0.5f, 2.0f, 1.5f);
+
+		pntLights[p].position = pntLightTransforms[p].position;
+		pntLights[p].color = glm::vec3(0.5f, 0.5f, 0.5f);
+		pntLights[p].radius = pntLightTransforms[p].scale.x;
+		pntLights[p].intensity = 1.0f;
+	}
+
+	/// SPOTLIGHT
+	SpotLight sptLights[MAX_SPT_LIGHTS];
+	ew::Transform sptLightTransform;
+	sptLightTransform.scale = glm::vec3(0.5f);
+	sptLightTransform.position = glm::vec3(0.0f, 3.0f, 0.0f);
+
+	for (size_t s = 0; s < MAX_SPT_LIGHTS; s++)
+	{
+		sptLights[s].position = sptLightTransform.position;
+		sptLights[s].direction = -glm::normalize(sptLightTransform.position);
+		sptLights[s].color = glm::vec3(0.5f, 0.5f, 0.5f);
+		sptLights[s].intensity = 1.0f;
+		sptLights[s].minAngle = cos(glm::radians(30.0f));
+		sptLights[s].maxAngle = cos(glm::radians(60.0f));
+	}
+
+	// create mesh data
+	ew::MeshData cubeMeshData;
+	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
+	ew::MeshData sphereMeshData;
+	ew::createSphere(0.5f, 64, sphereMeshData);
+	ew::MeshData cylinderMeshData;
+	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
+	ew::MeshData planeMeshData;
+	ew::createPlane(1.0f, 1.0f, planeMeshData);
+
+	ew::Mesh cubeMesh(&cubeMeshData);
+	ew::Mesh sphereMesh(&sphereMeshData);
+	ew::Mesh planeMesh(&planeMeshData);
+	ew::Mesh cylinderMesh(&cylinderMeshData);
 
 	//Enable back face culling
 	glEnable(GL_CULL_FACE);
@@ -154,7 +227,6 @@ int main() {
 	ew::Transform sphereTransform;
 	ew::Transform planeTransform;
 	ew::Transform cylinderTransform;
-	ew::Transform lightTransform;
 
 	cubeTransform.position = glm::vec3(-2.0f, 0.0f, 0.0f);
 	sphereTransform.position = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -163,13 +235,6 @@ int main() {
 	planeTransform.scale = glm::vec3(10.0f);
 
 	cylinderTransform.position = glm::vec3(2.0f, 0.0f, 0.0f);
-
-	lightTransform.scale = glm::vec3(0.5f);
-	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
-
-	dirLight.direction = lightTransform.position;
-	dirLight.color = glm::vec3(0.5f, 0.5f, 0.5f);
-	dirLight.intensity = 1.0f;
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -188,52 +253,113 @@ int main() {
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
-		litShader.setVec3("cameraPos", camera.getPosition());
 
-		//Draw quad
+		litShader.setVec3("_CameraPos", camera.getPosition());
+
+		// Set some lighting uniforms
+		// Directional Lights
+		litShader.setInt("_NumDirLights", numDirLights);
+		for (size_t d = 0; d < numDirLights; d++)
+		{
+			litShader.setVec3("_DirLights[" + std::to_string(d) + "].direction", dirLightTransform.position);
+			litShader.setVec3("_DirLights[" + std::to_string(d) + "].color", dirLights[d].color);
+			litShader.setFloat("_DirLights[" + std::to_string(d) + "].intensity", dirLights[d].intensity);
+		}
+
+		// Point Lights
+		litShader.setInt("_NumPntLights", numPntLights);
+		for (size_t p = 0; p < numPntLights; p++)
+		{
+			litShader.setVec3("_PntLights[" + std::to_string(p) + "].position", pntLightTransforms[p].position);
+			litShader.setVec3("_PntLights[" + std::to_string(p) + "].color", pntLights[p].color);
+			litShader.setFloat("_PntLights[" + std::to_string(p) + "].radius", pntLights[p].radius);
+			litShader.setFloat("_PntLights[" + std::to_string(p) + "].intensity", pntLights[p].intensity);
+		}
+
+		// Spotlights
+		litShader.setInt("_NumSptLights", numSptLights);
+		for (size_t s = 0; s < numSptLights; s++)
+		{
+			litShader.setVec3("_SptLights[" + std::to_string(s) + "].position", sptLightTransform.position);
+			litShader.setVec3("_SptLights[" + std::to_string(s) + "].direction", sptLights[s].direction);
+			litShader.setVec3("_SptLights[" + std::to_string(s) + "].color", sptLights[s].color);
+			litShader.setFloat("_SptLights[" + std::to_string(s) + "].intensity", sptLights[s].intensity);
+			litShader.setFloat("_SptLights[" + std::to_string(s) + "].minAngle", sptLights[s].minAngle);
+			litShader.setFloat("_SptLights[" + std::to_string(s) + "].maxAngle", sptLights[s].maxAngle);
+		}
+
+		//Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
-		quadMesh.draw();
+		cubeMesh.draw();
 
-		//// Set some lighting uniforms
-		//
-		//for (size_t i = 0; i < 1; i++)
-		//{
-		//	litShader.setVec3("_Lights[" + std::to_string(i) + "].position", lightTransform.position);
-		//	litShader.setVec3("_Lights[" + std::to_string(i) + "].color", dirLight.color);
-		//	litShader.setFloat("_Lights[" + std::to_string(i) + "].intensity", dirLight.intensity);
-		//}
+		//Draw sphere
+		litShader.setMat4("_Model", sphereTransform.getModelMatrix());
+		sphereMesh.draw();
 
-		//cubeTransform.rotation.x += deltaTime;
+		//Draw cylinder
+		litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
+		cylinderMesh.draw();
 
-		////Draw cube
-		//litShader.setMat4("_Model", cubeTransform.getModelMatrix());
-		//cubeMesh.draw();
-		//
-		////Draw sphere
-		//litShader.setMat4("_Model", sphereTransform.getModelMatrix());
-		//sphereMesh.draw();
-		//
-		////Draw cylinder
-		//litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
-		//cylinderMesh.draw();
-		//
-		////Draw plane
-		//litShader.setMat4("_Model", planeTransform.getModelMatrix());
-		//planeMesh.draw();
-		//
-		////Draw light as a small sphere using unlit shader, ironically.
-		//unlitShader.use();
-		//unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
-		//unlitShader.setMat4("_View", camera.getViewMatrix());
-		//unlitShader.setMat4("_Model", lightTransform.getModelMatrix());
-		//unlitShader.setVec3("_Color", lightColor);
-		//sphereMesh.draw();
+		//Draw plane
+		litShader.setMat4("_Model", planeTransform.getModelMatrix());
+		planeMesh.draw();
+
+		// coefficients
+		litShader.setFloat("_Material.ambientCoefficient", ambCoefficient);
+		litShader.setFloat("_Material.diffuseCoefficient", difCoefficient);
+		litShader.setFloat("_Material.specularCoefficient", specCoefficient);
+		litShader.setFloat("_Material.shininess", shininess);
+		litShader.setVec3("_Material.objColor", objColor);
+
+		//Draw light as a small sphere using unlit shader, ironically.
+		unlitShader.use();
+		unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
+		unlitShader.setMat4("_View", camera.getViewMatrix());
+
+		//Directional Light
+		unlitShader.setMat4("_Model", dirLightTransform.getModelMatrix());
+		unlitShader.setVec3("_Color", lightColor);
+		sphereMesh.draw();
+
+		// Point light
+		unlitShader.setMat4("_Model", pntLightTransforms[0].getModelMatrix());
+		unlitShader.setVec3("_Color", lightColor);
+		sphereMesh.draw();
+		unlitShader.setMat4("_Model", pntLightTransforms[1].getModelMatrix());
+		unlitShader.setVec3("_Color", lightColor);
+		sphereMesh.draw();
+
+		// Spot Light
+		unlitShader.setMat4("_Model", sptLightTransform.getModelMatrix());
+		unlitShader.setVec3("_Color", lightColor);
+		sphereMesh.draw();
 
 		//Draw UI
 		ImGui::Begin("Settings");
 
-		ImGui::ColorEdit3("Light Color", &dirLight.color.r);
-		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
+		ImGui::ColorEdit3("Material Color", &objColor.r);
+		ImGui::DragInt("Num of Directional Lights", &numDirLights, 1, 0, MAX_DIR_LIGHTS);
+		ImGui::ColorEdit3("Directional Light Color", &dirLights[0].color.r);
+		ImGui::DragFloat3("Directional Light Position", &dirLightTransform.position.x, 0.1f);
+		ImGui::DragFloat("Directional Light Intensity", &dirLights[0].intensity, 0.1f);
+		ImGui::DragInt("Num of Point Lights", &numPntLights, 1, 0, MAX_PNT_LIGHTS);
+		ImGui::ColorEdit3("Point Light Color 1", &pntLights[0].color.r);
+		ImGui::ColorEdit3("Point Light Color 2", &pntLights[1].color.r);
+		ImGui::DragFloat3("Point Light Position 1", &pntLightTransforms[0].position.x, 0.1f);
+		ImGui::DragFloat3("Point Light Position 2", &pntLightTransforms[1].position.x, 0.1f);
+		ImGui::DragFloat("Point Light Intensity 1", &pntLights[0].intensity, 0.1f);
+		ImGui::DragFloat("Point Light Intensity 2", &pntLights[1].intensity, 0.1f);
+		ImGui::DragInt("Num of Spot Lights", &numSptLights, 1, 0, MAX_SPT_LIGHTS);
+		ImGui::DragFloat3("Spot Light Position", &sptLightTransform.position.x, 0.1f);
+		ImGui::DragFloat("Spot Light Intensity", &sptLights[0].intensity, 0.1f);
+		ImGui::ColorEdit3("Spot Light Color", &sptLights[0].color.r);
+		ImGui::DragFloat("Spot Light Min Angle", &sptLights[0].minAngle, 0.1f);
+		ImGui::DragFloat("Spot Light Max Angle", &sptLights[0].maxAngle, 0.1f);
+		ImGui::DragFloat("Ambient Coefficient", &ambCoefficient, 0.01f, 0.0f, 1.0f);
+		ImGui::DragFloat("Diffuse Coefficient", &difCoefficient, 0.01f, 0.0f, 1.0f);
+		ImGui::DragFloat("Specular Coefficient", &specCoefficient, 0.01f, 0.0f, 1.0f);
+		ImGui::DragInt("Shininess", &shininess, 2, 2, 512);
+
 		ImGui::End();
 
 		ImGui::Render();

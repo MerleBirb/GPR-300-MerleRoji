@@ -105,7 +105,7 @@ int main() {
 		return 1;
 	}
 
-	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Lighting", 0, 0);
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Texture Mapping", 0, 0);
 	glfwMakeContextCurrent(window);
 
 	if (glewInit() != GLEW_OK) {
@@ -235,6 +235,45 @@ int main() {
 	planeTransform.scale = glm::vec3(10.0f);
 
 	cylinderTransform.position = glm::vec3(2.0f, 0.0f, 0.0f);
+
+	// Generate a texture name
+	GLuint brickTexture;
+	glGenTextures(1, &brickTexture);
+
+	// Load texture data as a file
+	int width;
+	int height;
+	int numComponents;
+	std::string fileNameString = "Resources/brickTex.png";
+	const char* fileName = fileNameString.c_str();
+
+	printf(fileName);
+
+	unsigned char* textureData = stbi_load(fileName, &width, &height, &numComponents, 0);
+
+	// Change to texture unit 0
+	glActiveTexture(GL_TEXTURE0);
+
+	// Bind texture name to GL_TEXTURE_2D to make it a 2D texture
+	glBindTexture(GL_TEXTURE_2D, brickTexture);
+
+	// set texture data
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+
+	// Wrap Horizontally
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
+	// Clamp vertically
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+	// Magnify with nearest neighbor sampling
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// Mipmaps
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	// Minify with bilinear sampling
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);

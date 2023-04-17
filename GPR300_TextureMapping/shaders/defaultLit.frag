@@ -56,6 +56,8 @@ uniform PointLight _PntLights[MAX_PNT_LIGHTS];
 uniform int _NumSptLights = MAX_SPT_LIGHTS;
 uniform SpotLight _SptLights[MAX_SPT_LIGHTS];
 
+uniform sampler2D _BrickTexture;
+
 vec3 ambient(float coefficient, vec3 color)
 {
     vec3 ambientLight;
@@ -150,6 +152,7 @@ vec3 calculateSpotLight(SpotLight light)
 void main()
 {
     vec3 color = vec3(0);
+    //vec4 tex = texture(_BrickTexture, uv);
     
     // directional lights
     for(int d = 0; d < _NumDirLights; d++)

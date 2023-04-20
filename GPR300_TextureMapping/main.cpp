@@ -142,7 +142,7 @@ int main() {
 	float difCoefficient = 0.8f;
 	float specCoefficient = 0.8f;
 	int shininess = 64.0f;
-	glm::vec3 objColor = glm::vec3(0.5f, 0.5f, 0.5f);
+	glm::vec3 objColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
 	/// DIRECTIONAL LIGHT
 	// create lighting
@@ -292,7 +292,6 @@ int main() {
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
-
 		litShader.setVec3("_CameraPos", camera.getPosition());
 
 		// Set some lighting uniforms
@@ -372,6 +371,9 @@ int main() {
 		unlitShader.setMat4("_Model", sptLightTransform.getModelMatrix());
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
+
+		// set texture
+		litShader.setInt("_BrickTexture", 0);
 
 		//Draw UI
 		ImGui::Begin("Settings");

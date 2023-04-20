@@ -1,5 +1,7 @@
 #version 450                          
+
 out vec4 FragColor;
+in vec2 uv;
 
 in struct Vertex
 {
@@ -152,7 +154,7 @@ vec3 calculateSpotLight(SpotLight light)
 void main()
 {
     vec3 color = vec3(0);
-    //vec4 tex = texture(_BrickTexture, uv);
+    vec4 tex = texture(_BrickTexture, uv);
     
     // directional lights
     for(int d = 0; d < _NumDirLights; d++)
@@ -172,5 +174,8 @@ void main()
         color += calculateSpotLight(_SptLights[s]);
     }
 
-    FragColor = vec4(_Material.objColor * color, 1.0f);
+    vec3 matColor = vec3(_Material.objColor);
+    vec4 totalColor = vec4(matColor * color, 1.0f);
+
+    FragColor = vec4(totalColor * tex);
 }

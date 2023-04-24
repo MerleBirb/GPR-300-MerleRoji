@@ -76,6 +76,7 @@ vec3 ambient(float coefficient, vec3 color)
 vec3 diffuse(float difCoefficient, vec3 toLightDir, vec3 surfaceNormal, vec3 color)
 {
     vec3 diffuseLight;
+    vec3 stepLight;
 
     diffuseLight = difCoefficient * max(dot(toLightDir, surfaceNormal), 0) * color; // max range 0 - 1
 
@@ -86,7 +87,6 @@ vec3 specular(float specCoefficient, vec3 toLightDir, vec3 surfaceNormal, float 
 {
     vec3 specularLight;
     vec3 viewerDir = normalize(_CameraPos - v_out.WorldPosition);
-    //vec3 reflectDir = reflect(-toLightDir, surfaceNormal);
 
     vec3 halfVector = normalize(viewerDir + toLightDir); // blinn phong
 
@@ -158,9 +158,16 @@ vec3 calculateSpotLight(SpotLight light)
 void main()
 {
     vec3 color = vec3(0);
-
+    vec3 matColor = vec3(_Material.objColor);
+    vec4 matLightingColor = vec4(0);
+    vec4 totalColor;
+    float lightIntensity;
+    vec3 normal = normalize(v_out.WorldNormal);
+    int totalLights;
     vec4 tex1;
     vec4 tex2;
+
+    totalLights = _NumDirLights + _NumPntLights + _NumSptLights;
 
     if (_Animated)
     {
@@ -177,22 +184,38 @@ void main()
     for(int d = 0; d < _NumDirLights; d++)
     {
         color += calculateDirLight(_DirLights[d]);
+        lightIntensity += dot(_DirLights[d].direction, normal);
     }
 
     // point lights
     for(int p = 0; p < _NumPntLights; p++)
     {
         color += calculatePointLight(_PntLights[p]);
+        lightIntensity += dot(_PntLights[p].position, normal);
     }
 
     // spotlights
     for (int s = 0; s < _NumSptLights; s++)
     {
         color += calculateSpotLight(_SptLights[s]);
+        lightIntensity += dot(_SptLights[s].direction, normal);
     }
 
-    vec3 matColor = vec3(_Material.objColor);
-    vec4 totalColor = vec4(matColor * color, 1.0f);
+    matLightingColor = vec4(matColor * color, 1.0);
+    lightIntensity /= totalLights;
+
+    if (lightIntensity > 0.95)
+    {
+        totalColor = matLightingColor * 1;
+    }
+    else if (lightIntensity > 0.1)
+    {
+        totalColor = matLightingColor * 0.75;
+    }
+    else
+    {
+        totalColor = matLightingColor * 0.1;
+    }
 
     if (_TexChoice == 1)
     {

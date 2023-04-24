@@ -163,6 +163,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\brickTex.png" />
+    <Image Include="Resources\brickToonTex.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

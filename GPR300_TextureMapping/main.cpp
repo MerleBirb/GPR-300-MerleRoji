@@ -237,19 +237,27 @@ int main() {
 	cylinderTransform.position = glm::vec3(2.0f, 0.0f, 0.0f);
 
 	// Generate a texture name
+	int texChoice = 1;
+	bool animated = 0;
 	GLuint brickTexture;
 	glGenTextures(1, &brickTexture);
+	GLuint brickToonTexture;
+	glGenTextures(1, &brickToonTexture);
 
 	// Load texture data as a file
 	int width;
 	int height;
 	int numComponents;
-	std::string fileNameString = "Resources/brickTex.png";
-	const char* fileName = fileNameString.c_str();
+	std::string tex1FileNameString = "Resources/brickTex.png";
+	const char* tex1FileName = tex1FileNameString.c_str();
+	std::string tex2FileNameString = "Resources/brickToonTex.png";
+	const char* tex2FileName = tex2FileNameString.c_str();
 
-	printf(fileName);
+	printf(tex1FileName);
+	printf(tex2FileName);
 
-	unsigned char* textureData = stbi_load(fileName, &width, &height, &numComponents, 0);
+	unsigned char* textureDataTex1 = stbi_load(tex1FileName, &width, &height, &numComponents, 0);
+	unsigned char* textureDataTex2 = stbi_load(tex2FileName, &width, &height, &numComponents, 0);
 
 	// Change to texture unit 0
 	glActiveTexture(GL_TEXTURE0);
@@ -258,7 +266,31 @@ int main() {
 	glBindTexture(GL_TEXTURE_2D, brickTexture);
 
 	// set texture data
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureDataTex1);
+
+	// Wrap Horizontally
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
+	// Clamp vertically
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+	// Magnify with nearest neighbor sampling
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// Mipmaps
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	// Minify with bilinear sampling
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+
+	// Change to texture unit 1
+	glActiveTexture(GL_TEXTURE1);
+	
+	// Bind texture name to GL_TEXTURE_2D to make it a 2D texture
+	glBindTexture(GL_TEXTURE_2D, brickToonTexture);
+	
+	// set texture data
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureDataTex2);
 
 	// Wrap Horizontally
 	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -279,6 +311,8 @@ int main() {
 		processInput(window);
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glActiveTexture(GL_TEXTURE0);
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -373,11 +407,25 @@ int main() {
 		sphereMesh.draw();
 
 		// set texture
-		litShader.setInt("_BrickTexture", 0);
+		litShader.setInt("_TexChoice", texChoice);
+		litShader.setInt("_BrickTexture1", 0);
+		litShader.setInt("_BrickTexture2", 1);
+		litShader.setFloat("_Time", time * 0.25f);
+		litShader.setInt("_Animated", animated);
+
+		if (texChoice == 1)
+		{
+			glActiveTexture(GL_TEXTURE0);
+		}
+		else if (texChoice == 2)
+		{
+			glActiveTexture(GL_TEXTURE1);
+		}
 
 		//Draw UI
 		ImGui::Begin("Settings");
 
+		ImGui::Checkbox("Animated?", &animated);
 		ImGui::ColorEdit3("Material Color", &objColor.r);
 		ImGui::DragInt("Num of Directional Lights", &numDirLights, 1, 0, MAX_DIR_LIGHTS);
 		ImGui::ColorEdit3("Directional Light Color", &dirLights[0].color.r);
@@ -400,6 +448,7 @@ int main() {
 		ImGui::DragFloat("Diffuse Coefficient", &difCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Specular Coefficient", &specCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragInt("Shininess", &shininess, 2, 2, 512);
+		ImGui::DragInt("Texture Choice", &texChoice, 1, 1, 2);
 
 		ImGui::End();
 

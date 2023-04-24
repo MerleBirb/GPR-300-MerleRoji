@@ -58,7 +58,11 @@ uniform PointLight _PntLights[MAX_PNT_LIGHTS];
 uniform int _NumSptLights = MAX_SPT_LIGHTS;
 uniform SpotLight _SptLights[MAX_SPT_LIGHTS];
 
-uniform sampler2D _BrickTexture;
+uniform sampler2D _BrickTexture1;
+uniform sampler2D _BrickTexture2;
+uniform int _TexChoice;
+uniform float _Time;
+uniform bool _Animated;
 
 vec3 ambient(float coefficient, vec3 color)
 {
@@ -154,7 +158,20 @@ vec3 calculateSpotLight(SpotLight light)
 void main()
 {
     vec3 color = vec3(0);
-    vec4 tex = texture(_BrickTexture, uv);
+
+    vec4 tex1;
+    vec4 tex2;
+
+    if (_Animated)
+    {
+        tex1 = texture(_BrickTexture1, uv + _Time);
+        tex2 = texture(_BrickTexture2, uv + _Time); 
+    }
+    else
+    {
+        tex1 = texture(_BrickTexture1, uv);
+        tex2 = texture(_BrickTexture2, uv);
+    }
     
     // directional lights
     for(int d = 0; d < _NumDirLights; d++)
@@ -177,5 +194,12 @@ void main()
     vec3 matColor = vec3(_Material.objColor);
     vec4 totalColor = vec4(matColor * color, 1.0f);
 
-    FragColor = vec4(totalColor * tex);
+    if (_TexChoice == 1)
+    {
+        FragColor = vec4(totalColor * tex1);
+    }
+    else if (_TexChoice == 2)
+    {
+        FragColor = vec4(totalColor * tex2);
+    }
 }

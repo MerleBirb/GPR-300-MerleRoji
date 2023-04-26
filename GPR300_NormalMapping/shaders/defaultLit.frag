@@ -58,7 +58,7 @@ uniform PointLight _PntLights[MAX_PNT_LIGHTS];
 uniform int _NumSptLights = MAX_SPT_LIGHTS;
 uniform SpotLight _SptLights[MAX_SPT_LIGHTS];
 
-#define MAX_TEXTURES 2
+#define MAX_TEXTURES 4
 uniform sampler2D _BrickTextures[MAX_TEXTURES];
 uniform sampler2D _NormalMaps[MAX_TEXTURES];
 uniform int _TexChoice;

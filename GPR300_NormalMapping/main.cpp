@@ -424,6 +424,14 @@ int main() {
 		{
 			glActiveTexture(GL_TEXTURE1);
 		}
+		else if (texChoice == 2)
+		{
+			glActiveTexture(GL_TEXTURE1);
+		}
+		else if (texChoice == 3)
+		{
+			glActiveTexture(GL_TEXTURE1);
+		}
 
 		//Draw UI
 		ImGui::Begin("Settings");
@@ -451,7 +459,7 @@ int main() {
 		ImGui::DragFloat("Diffuse Coefficient", &difCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Specular Coefficient", &specCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragInt("Shininess", &shininess, 2, 2, 512);
-		ImGui::DragInt("Texture Choice", &texChoice, 1, 0, 1);
+		ImGui::DragInt("Texture Choice", &texChoice, 1, 0, 3);
 
 		ImGui::End();
 

@@ -239,6 +239,7 @@ int main() {
 	// Generate a texture name
 	int texChoice = 0;
 	const int NUM_OF_TEXTURES = 4;
+	float nmapIntensity = 0.0f;
 	bool animated = 0;
 	GLuint textures[NUM_OF_TEXTURES];
 	for (size_t i = 0; i < NUM_OF_TEXTURES; i++)
@@ -300,7 +301,7 @@ int main() {
 	glGenerateMipmap(GL_TEXTURE_2D); // Mipmaps
 	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST); // Minify with bilinear sampling
 
-	// Change to texture unit 2
+	// Change to texture unit 3
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, textures[3]); // Bind texture name to GL_TEXTURE_2D to make it a 2D texture
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData[3]); // set texture data
@@ -412,7 +413,8 @@ int main() {
 		// set texture
 		litShader.setInt("_TexChoice", texChoice);
 		litShader.setInt("_BrickTextures[" + std::to_string(texChoice) + "]", texChoice);
-		litShader.setInt("_NormalMaps[" + std::to_string(texChoice) + "]", texChoice);
+		litShader.setInt("_NormalMaps[" + std::to_string(texChoice) + "]", texChoice + 2);
+		litShader.setFloat("_NmapIntensity", nmapIntensity);
 		litShader.setFloat("_Time", time * 0.25f);
 		litShader.setInt("_Animated", animated);
 
@@ -421,14 +423,6 @@ int main() {
 			glActiveTexture(GL_TEXTURE0);
 		}
 		else if (texChoice == 1)
-		{
-			glActiveTexture(GL_TEXTURE1);
-		}
-		else if (texChoice == 2)
-		{
-			glActiveTexture(GL_TEXTURE1);
-		}
-		else if (texChoice == 3)
 		{
 			glActiveTexture(GL_TEXTURE1);
 		}
@@ -459,7 +453,8 @@ int main() {
 		ImGui::DragFloat("Diffuse Coefficient", &difCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Specular Coefficient", &specCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragInt("Shininess", &shininess, 2, 2, 512);
-		ImGui::DragInt("Texture Choice", &texChoice, 1, 0, 3);
+		ImGui::DragInt("Texture Choice", &texChoice, 1, 0, 1);
+		ImGui::DragFloat("Normal Map Intensity", &nmapIntensity, 0.01f, 0.0f, 1.0f);
 
 		ImGui::End();
 

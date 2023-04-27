@@ -2,6 +2,7 @@
 
 out vec4 FragColor;
 in vec2 uv;
+in mat3 worldTBN;
 
 in struct Vertex
 {
@@ -58,12 +59,13 @@ uniform PointLight _PntLights[MAX_PNT_LIGHTS];
 uniform int _NumSptLights = MAX_SPT_LIGHTS;
 uniform SpotLight _SptLights[MAX_SPT_LIGHTS];
 
-#define MAX_TEXTURES 4
+#define MAX_TEXTURES 2
 uniform sampler2D _BrickTextures[MAX_TEXTURES];
 uniform sampler2D _NormalMaps[MAX_TEXTURES];
 uniform int _TexChoice;
 uniform float _Time;
 uniform bool _Animated;
+uniform float _NmapIntensity;
 
 vec3 ambient(float coefficient, vec3 color)
 {
@@ -106,11 +108,10 @@ float angularAttenuation(float theta, float minAngle, float maxAngle, float fall
     return pow(clamp((theta - maxAngle)/(minAngle - maxAngle), 0, 1), fallOffCurve);
 }
 
-vec3 calculateDirLight(DirectionalLight light)
+vec3 calculateDirLight(DirectionalLight light, vec3 normal)
 {
     vec3 lightColor = vec3(0);
 
-    vec3 normal = normalize(v_out.WorldNormal);
     vec3 toLightDir = normalize(light.direction - v_out.WorldPosition);
 
     vec3 ambientLight = ambient(_Material.ambientCoefficient, light.color);
@@ -121,11 +122,10 @@ vec3 calculateDirLight(DirectionalLight light)
     return lightColor;
 }
 
-vec3 calculatePointLight(PointLight light)
+vec3 calculatePointLight(PointLight light, vec3 normal)
 {
     vec3 lightColor = vec3(0);
 
-    vec3 normal = normalize(v_out.WorldNormal);
     vec3 toLightDir = normalize(light.position - v_out.WorldPosition);
     float dist = length(light.position - v_out.WorldPosition);
     float att = attenuation(dist, light.radius);
@@ -138,11 +138,10 @@ vec3 calculatePointLight(PointLight light)
     return lightColor;
 }
 
-vec3 calculateSpotLight(SpotLight light)
+vec3 calculateSpotLight(SpotLight light, vec3 normal)
 {
     vec3 lightColor = vec3(0);
 
-    vec3 normal = normalize(v_out.WorldNormal);
     vec3 dirToFrag = normalize(v_out.WorldPosition - light.position);
 
     float theta = dot(dirToFrag, light.direction);
@@ -161,20 +160,33 @@ void main()
     vec3 color = vec3(0);
 
     vec4 tex;
-    vec3 normalmap = texture(_NormalMaps[_TexChoice], uv).rgb;
-    normalmap = normalmap * 2.0 - 1.0; // convert from [0, 1[ to [-1, 1]
+    vec3 normalmap;
 
-    if (_Animated) { tex = texture(_BrickTextures[_TexChoice], uv + _Time); }
-    else { tex = texture(_BrickTextures[_TexChoice], uv); }
+    if (_Animated)
+    {
+        tex = texture(_BrickTextures[_TexChoice], uv + _Time);
+        normalmap = texture(_NormalMaps[_TexChoice], uv + _Time).rgb;
+        normalmap = normalmap * 2.0 - 1.0; // convert from [0, 1] to [-1, 1]
+        normalmap = worldTBN * normalmap;
+        normalmap = normalize(normalmap);
+    }
+    else
+    {
+        tex = texture(_BrickTextures[_TexChoice], uv);
+        normalmap = texture(_NormalMaps[_TexChoice], uv).rgb;
+        normalmap = normalmap * 2.0 - 1.0; // convert from [0, 1] to [-1, 1]
+        normalmap = worldTBN * normalmap;
+        normalmap = normalize(normalmap);
+    }
     
     // directional lights
-    for(int d = 0; d < _NumDirLights; d++) { color += calculateDirLight(_DirLights[d]); }
+    for(int d = 0; d < _NumDirLights; d++) { color += calculateDirLight(_DirLights[d], normalmap); }
 
     // point lights
-    for(int p = 0; p < _NumPntLights; p++) { color += calculatePointLight(_PntLights[p]); }
+    for(int p = 0; p < _NumPntLights; p++) { color += calculatePointLight(_PntLights[p], normalmap); }
 
     // spotlights
-    for (int s = 0; s < _NumSptLights; s++) { color += calculateSpotLight(_SptLights[s]); }
+    for (int s = 0; s < _NumSptLights; s++) { color += calculateSpotLight(_SptLights[s], normalmap); }
 
     vec3 matColor = vec3(_Material.objColor);
     vec4 totalColor = vec4(matColor * color, 1.0f);

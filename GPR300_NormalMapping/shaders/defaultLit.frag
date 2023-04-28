@@ -65,7 +65,6 @@ uniform sampler2D _NormalMaps[MAX_TEXTURES];
 uniform int _TexChoice;
 uniform float _Time;
 uniform bool _Animated;
-uniform float _NmapIntensity;
 
 vec3 ambient(float coefficient, vec3 color)
 {

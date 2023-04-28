@@ -11,6 +11,8 @@ uniform mat4 _Model;
 uniform mat4 _View;
 uniform mat4 _Projection;
 
+uniform float _NmapIntensity;
+
 out struct Vertex
 {
     vec3 WorldNormal;
@@ -24,7 +26,7 @@ void main()
     gl_Position = _Projection * _View * _Model * vec4(vPos, 1);
 
     vec3 bitangent = normalize(cross(vNormal, vTangent));
-    mat3 localTBN = mat3(vTangent, bitangent, vNormal);
+    mat3 localTBN = mat3(vTangent * _NmapIntensity, bitangent * _NmapIntensity, vNormal);
     worldTBN = transpose(inverse(mat3(_Model))) * localTBN;
 
     uv = vUv;

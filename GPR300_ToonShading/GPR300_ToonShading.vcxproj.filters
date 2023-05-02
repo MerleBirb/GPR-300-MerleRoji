@@ -107,4 +107,8 @@
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\toonLit.frag" />
+    <None Include="shaders\toonLit.vert" />
+  </ItemGroup>
 </Project>

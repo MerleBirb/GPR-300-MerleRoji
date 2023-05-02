@@ -132,15 +132,15 @@ int main() {
 	ImGui::StyleColorsDark();
 
 	//Used to draw shapes. This is the shader you will be completing.
-	Shader litShader("shaders/defaultLit.vert", "shaders/defaultLit.frag");
+	Shader litShader("shaders/toonLit.vert", "shaders/toonLit.frag");
 
 	//Used to draw light sphere
-	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
+	Shader unlitShader("shaders/toonLit.vert", "shaders/toonLit.frag");
 
 	//material settings
-	float ambCoefficient = 0.2f;
-	float difCoefficient = 0.8f;
-	float specCoefficient = 0.8f;
+	float ambCoefficient = 0.1f;
+	float difCoefficient = 1.0f;
+	float specCoefficient = 0.5f;
 	int shininess = 64.0f;
 	glm::vec3 objColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
@@ -151,7 +151,7 @@ int main() {
 	// light settings
 	ew::Transform dirLightTransform;
 	dirLightTransform.scale = glm::vec3(0.5f);
-	dirLightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
+	dirLightTransform.position = glm::vec3(3.0f, 3.0f, 10.0f);
 
 	for (size_t d = 0; d < MAX_DIR_LIGHTS; d++)
 	{

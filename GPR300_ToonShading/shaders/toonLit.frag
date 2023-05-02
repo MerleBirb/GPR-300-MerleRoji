@@ -64,6 +64,9 @@ uniform int _TexChoice;
 uniform float _Time;
 uniform bool _Animated;
 
+const int toonLevels = 4;
+const float toonScaleFactor = 1.0f / toonLevels;
+
 vec3 ambient(float coefficient, vec3 color)
 {
     vec3 ambientLight;
@@ -111,10 +114,27 @@ vec3 calculateDirLight(DirectionalLight light)
 
     vec3 normal = normalize(v_out.WorldNormal);
     vec3 toLightDir = normalize(light.direction - v_out.WorldPosition);
+    vec3 lightReflect = normalize(reflect(light.direction, normal));
+    vec3 viewerDir = normalize(_CameraPos - v_out.WorldPosition);
+    float diffuseFactor = dot(normal, toLightDir);
+    float specularFactor = dot(viewerDir, lightReflect);
 
-    vec3 ambientLight = ambient(_Material.ambientCoefficient, light.color);
-    vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color);
-    vec3 specularLight = specular(_Material.specularCoefficient, toLightDir, normal, _Material.shininess, light.color);
+    vec3 ambientLight = vec3(0);
+    vec3 diffuseLight = vec3(0);
+    vec3 specularLight = vec3(0);
+
+    // factor step functions
+    if (diffuseFactor > 0) 
+    {
+        diffuseFactor = ceil(diffuseFactor * toonLevels) * toonScaleFactor;
+    }
+    
+    float specularExponent = 64;
+    specularFactor = pow(specularFactor, specularExponent);
+    specularLight = specular(_Material.specularCoefficient, toLightDir, normal, _Material.shininess, light.color);
+
+    ambientLight = ambient(_Material.ambientCoefficient, light.color); // continue ambient light as normal
+    diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color) * diffuseFactor; // step function applied
 
     lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity;
     return lightColor;
@@ -159,9 +179,7 @@ void main()
 {
     vec3 color = vec3(0);
     vec3 matColor = vec3(_Material.objColor);
-    vec4 matLightingColor = vec4(0);
-    //vec4 totalColor;
-    //float lightIntensity;
+    vec4 totalColor;
     vec3 normal = normalize(v_out.WorldNormal);
     int totalLights;
     vec4 tex1;
@@ -184,46 +202,16 @@ void main()
     for(int d = 0; d < _NumDirLights; d++)
     {
         color += calculateDirLight(_DirLights[d]);
-        //lightIntensity += dot(_DirLights[d].direction, normal);
     }
 
-    // point lights
-    for(int p = 0; p < _NumPntLights; p++)
-    {
-        color += calculatePointLight(_PntLights[p]);
-        //lightIntensity += dot(_PntLights[p].position, normal);
-    }
-
-    // spotlights
-    for (int s = 0; s < _NumSptLights; s++)
-    {
-        color += calculateSpotLight(_SptLights[s]);
-        //lightIntensity += dot(_SptLights[s].direction, normal);
-    }
-
-    matLightingColor = vec4(matColor * color, 1.0);
-
-    //lightIntensity /= totalLights;
-    //
-    //if (lightIntensity > 0.95)
-    //{
-    //    totalColor = matLightingColor * 1;
-    //}
-    //else if (lightIntensity > 0.1)
-    //{
-    //    totalColor = matLightingColor * 0.8;
-    //}
-    //else
-    //{
-    //    totalColor = matLightingColor * 0.5;
-    //}
+    totalColor = vec4(matColor * color, 1.0);
 
     if (_TexChoice == 1)
     {
-        FragColor = vec4(matLightingColor * tex1);
+        FragColor = vec4(totalColor * tex1);
     }
     else if (_TexChoice == 2)
     {
-        FragColor = vec4(matLightingColor * tex2);
+        FragColor = vec4(totalColor * tex2);
     }
 }

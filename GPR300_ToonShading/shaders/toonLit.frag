@@ -64,8 +64,11 @@ uniform int _TexChoice;
 uniform float _Time;
 uniform bool _Animated;
 
-const int toonLevels = 4;
-const float toonScaleFactor = 1.0f / toonLevels;
+uniform int _ToonLevels;
+uniform bool _RimLightingOn;
+uniform int _RimIntensity;
+
+const float toonScaleFactor = 1.0 / _ToonLevels;
 
 vec3 ambient(float coefficient, vec3 color)
 {
@@ -108,70 +111,57 @@ float angularAttenuation(float theta, float minAngle, float maxAngle, float fall
     return pow(clamp((theta - maxAngle)/(minAngle - maxAngle), 0, 1), fallOffCurve);
 }
 
+float calculateRimLightFactor(vec3 viewerDir, vec3 normal) // calculates the power of rim lighting
+{
+    float rimFactor = dot(viewerDir, normal); // the result gets closer to 1 as the two vectors become aligned with each other
+    rimFactor = 1.0 - rimFactor; // effect increases as the angle from viewerDir and normal vector grows
+    rimFactor = max(0.0, rimFactor); // make sure not to get any negative values
+    rimFactor = pow(rimFactor, _RimIntensity); // controls falloff of effect
+    return rimFactor;
+}
+
 vec3 calculateDirLight(DirectionalLight light)
 {
     vec3 lightColor = vec3(0);
 
     vec3 normal = normalize(v_out.WorldNormal);
     vec3 toLightDir = normalize(light.direction - v_out.WorldPosition);
-    vec3 lightReflect = normalize(reflect(light.direction, normal));
-    vec3 viewerDir = normalize(_CameraPos - v_out.WorldPosition);
     float diffuseFactor = dot(normal, toLightDir);
-    float specularFactor = dot(viewerDir, lightReflect);
+    vec3 viewerDir = normalize(_CameraPos - v_out.WorldPosition);
 
     vec3 ambientLight = vec3(0);
     vec3 diffuseLight = vec3(0);
     vec3 specularLight = vec3(0);
+    vec3 rimLight = vec3(0);
+
+    // toon shading starts here
+    // keep track of intensity of light hitting the normal
+    float intensity = dot(normalize(light.direction), normal);
 
     // factor step functions
-    if (diffuseFactor > 0) 
+    if (diffuseFactor > 0) // make sure steps never go negative
     {
-        diffuseFactor = ceil(diffuseFactor * toonLevels) * toonScaleFactor;
+        diffuseFactor = ceil(diffuseFactor * _ToonLevels) * toonScaleFactor;
+        diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color) * diffuseFactor; // step function applied to diffuse light
+
+        if (diffuseFactor >= 1) // if there is no shading, then allow specular light
+        {
+            if (intensity >= 0.99)
+            {
+                specularLight = light.color * _Material.specularCoefficient * _Material.shininess;
+            }
+        }
+        
+        ambientLight = ambient(_Material.ambientCoefficient, light.color); // continue ambient light and effect it with step
     }
-    
-    float specularExponent = 64;
-    specularFactor = pow(specularFactor, specularExponent);
-    specularLight = specular(_Material.specularCoefficient, toLightDir, normal, _Material.shininess, light.color);
 
-    ambientLight = ambient(_Material.ambientCoefficient, light.color); // continue ambient light as normal
-    diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color) * diffuseFactor; // step function applied
+    if (_RimLightingOn) // apply rim lighting only if the option is enabled
+    {
+        float rimFactor = calculateRimLightFactor(viewerDir, normal);
+        rimLight = diffuseLight * rimFactor;
+    }
 
-    lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity;
-    return lightColor;
-}
-
-vec3 calculatePointLight(PointLight light)
-{
-    vec3 lightColor = vec3(0);
-
-    vec3 normal = normalize(v_out.WorldNormal);
-    vec3 toLightDir = normalize(light.position - v_out.WorldPosition);
-    float dist = length(light.position - v_out.WorldPosition);
-    float att = attenuation(dist, light.radius);
-
-    vec3 ambientLight = ambient(_Material.ambientCoefficient, light.color);
-    vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color);
-    vec3 specularLight = specular(_Material.specularCoefficient, toLightDir, normal, _Material.shininess, light.color);
-
-    lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity * att;
-    return lightColor;
-}
-
-vec3 calculateSpotLight(SpotLight light)
-{
-    vec3 lightColor = vec3(0);
-
-    vec3 normal = normalize(v_out.WorldNormal);
-    vec3 dirToFrag = normalize(v_out.WorldPosition - light.position);
-
-    float theta = dot(dirToFrag, light.direction);
-    float att = angularAttenuation(theta, light.minAngle, light.maxAngle, 2);
-
-    vec3 ambientLight = ambient(_Material.ambientCoefficient, light.color);
-    vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, dirToFrag, normal, light.color);
-    vec3 specularLight = specular(_Material.specularCoefficient, dirToFrag, normal, _Material.shininess, light.color);
-
-    lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity * att;
+    lightColor = (ambientLight + diffuseLight + specularLight + rimLight) * light.intensity;
     return lightColor;
 }
 

@@ -137,11 +137,16 @@ int main() {
 	//Used to draw light sphere
 	Shader unlitShader("shaders/toonLit.vert", "shaders/toonLit.frag");
 
+	// toon settings
+	bool rimLightingOn = false;
+	int rimLightingIntensity = 4;
+	int toonLevels = 2;
+
 	//material settings
 	float ambCoefficient = 0.1f;
 	float difCoefficient = 1.0f;
 	float specCoefficient = 0.5f;
-	int shininess = 64.0f;
+	int shininess = 1.0f;
 	glm::vec3 objColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
 	/// DIRECTIONAL LIGHT
@@ -151,7 +156,7 @@ int main() {
 	// light settings
 	ew::Transform dirLightTransform;
 	dirLightTransform.scale = glm::vec3(0.5f);
-	dirLightTransform.position = glm::vec3(3.0f, 3.0f, 10.0f);
+	dirLightTransform.position = glm::vec3(4.0f, 7.0f, 10.0f);
 
 	for (size_t d = 0; d < MAX_DIR_LIGHTS; d++)
 	{
@@ -376,6 +381,11 @@ int main() {
 		litShader.setMat4("_Model", planeTransform.getModelMatrix());
 		planeMesh.draw();
 
+		// toon settings
+		litShader.setInt("_ToonLevels", toonLevels);
+		litShader.setInt("_RimLightingOn", rimLightingOn);
+		litShader.setInt("_RimIntensity", rimLightingIntensity);
+
 		// coefficients
 		litShader.setFloat("_Material.ambientCoefficient", ambCoefficient);
 		litShader.setFloat("_Material.diffuseCoefficient", difCoefficient);
@@ -425,29 +435,32 @@ int main() {
 		//Draw UI
 		ImGui::Begin("Settings");
 
-		ImGui::Checkbox("Animated?", &animated);
+		//ImGui::Checkbox("Animated?", &animated);
+		ImGui::Checkbox("Rim Lighting", &rimLightingOn);
+		ImGui::DragInt("Rim Lighting Intensity", &rimLightingIntensity, 1, 1, 10);
+		ImGui::DragInt("Toon Shading Levels", &toonLevels, 1, 2, 10);
 		ImGui::ColorEdit3("Material Color", &objColor.r);
-		ImGui::DragInt("Num of Directional Lights", &numDirLights, 1, 0, MAX_DIR_LIGHTS);
+		//ImGui::DragInt("Num of Directional Lights", &numDirLights, 1, 0, MAX_DIR_LIGHTS);
 		ImGui::ColorEdit3("Directional Light Color", &dirLights[0].color.r);
 		ImGui::DragFloat3("Directional Light Position", &dirLightTransform.position.x, 0.1f);
 		ImGui::DragFloat("Directional Light Intensity", &dirLights[0].intensity, 0.1f);
-		ImGui::DragInt("Num of Point Lights", &numPntLights, 1, 0, MAX_PNT_LIGHTS);
-		ImGui::ColorEdit3("Point Light Color 1", &pntLights[0].color.r);
-		ImGui::ColorEdit3("Point Light Color 2", &pntLights[1].color.r);
-		ImGui::DragFloat3("Point Light Position 1", &pntLightTransforms[0].position.x, 0.1f);
-		ImGui::DragFloat3("Point Light Position 2", &pntLightTransforms[1].position.x, 0.1f);
-		ImGui::DragFloat("Point Light Intensity 1", &pntLights[0].intensity, 0.1f);
-		ImGui::DragFloat("Point Light Intensity 2", &pntLights[1].intensity, 0.1f);
-		ImGui::DragInt("Num of Spot Lights", &numSptLights, 1, 0, MAX_SPT_LIGHTS);
-		ImGui::DragFloat3("Spot Light Position", &sptLightTransform.position.x, 0.1f);
-		ImGui::DragFloat("Spot Light Intensity", &sptLights[0].intensity, 0.1f);
-		ImGui::ColorEdit3("Spot Light Color", &sptLights[0].color.r);
-		ImGui::DragFloat("Spot Light Min Angle", &sptLights[0].minAngle, 0.1f);
-		ImGui::DragFloat("Spot Light Max Angle", &sptLights[0].maxAngle, 0.1f);
+		//ImGui::DragInt("Num of Point Lights", &numPntLights, 1, 0, MAX_PNT_LIGHTS);
+		//ImGui::ColorEdit3("Point Light Color 1", &pntLights[0].color.r);
+		//ImGui::ColorEdit3("Point Light Color 2", &pntLights[1].color.r);
+		//ImGui::DragFloat3("Point Light Position 1", &pntLightTransforms[0].position.x, 0.1f);
+		//ImGui::DragFloat3("Point Light Position 2", &pntLightTransforms[1].position.x, 0.1f);
+		//ImGui::DragFloat("Point Light Intensity 1", &pntLights[0].intensity, 0.1f);
+		//ImGui::DragFloat("Point Light Intensity 2", &pntLights[1].intensity, 0.1f);
+		//ImGui::DragInt("Num of Spot Lights", &numSptLights, 1, 0, MAX_SPT_LIGHTS);
+		//ImGui::DragFloat3("Spot Light Position", &sptLightTransform.position.x, 0.1f);
+		//ImGui::DragFloat("Spot Light Intensity", &sptLights[0].intensity, 0.1f);
+		//ImGui::ColorEdit3("Spot Light Color", &sptLights[0].color.r);
+		//ImGui::DragFloat("Spot Light Min Angle", &sptLights[0].minAngle, 0.1f);
+		//ImGui::DragFloat("Spot Light Max Angle", &sptLights[0].maxAngle, 0.1f);
 		ImGui::DragFloat("Ambient Coefficient", &ambCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Diffuse Coefficient", &difCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Specular Coefficient", &specCoefficient, 0.01f, 0.0f, 1.0f);
-		ImGui::DragInt("Shininess", &shininess, 2, 2, 512);
+		ImGui::DragInt("Shininess", &shininess, 1, 0, 20);
 		ImGui::DragInt("Texture Choice", &texChoice, 1, 1, 2);
 
 		ImGui::End();

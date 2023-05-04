@@ -161,7 +161,7 @@ int main() {
 	for (size_t d = 0; d < MAX_DIR_LIGHTS; d++)
 	{
 		dirLights[d].direction = dirLightTransform.position;
-		dirLights[d].color = glm::vec3(0.5f, 0.5f, 0.5f);
+		dirLights[d].color = glm::vec3(1.0f, 1.0f, 1.0f);
 		dirLights[d].intensity = 1.0f;
 	}
 
@@ -242,7 +242,7 @@ int main() {
 	cylinderTransform.position = glm::vec3(2.0f, 0.0f, 0.0f);
 
 	// Generate a texture name
-	int texChoice = 1;
+	int texChoice = 2;
 	bool animated = 0;
 	GLuint brickTexture;
 	glGenTextures(1, &brickTexture);
@@ -461,7 +461,7 @@ int main() {
 		ImGui::DragFloat("Diffuse Coefficient", &difCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragFloat("Specular Coefficient", &specCoefficient, 0.01f, 0.0f, 1.0f);
 		ImGui::DragInt("Shininess", &shininess, 1, 0, 20);
-		ImGui::DragInt("Texture Choice", &texChoice, 1, 1, 2);
+		//ImGui::DragInt("Texture Choice", &texChoice, 1, 1, 2);
 
 		ImGui::End();
 

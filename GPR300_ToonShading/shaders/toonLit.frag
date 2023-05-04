@@ -113,6 +113,7 @@ float angularAttenuation(float theta, float minAngle, float maxAngle, float fall
 
 float calculateRimLightFactor(vec3 viewerDir, vec3 normal) // calculates the power of rim lighting
 {
+    // based on: https://youtu.be/h15kTY3aWaY
     float rimFactor = dot(viewerDir, normal); // the result gets closer to 1 as the two vectors become aligned with each other
     rimFactor = 1.0 - rimFactor; // effect increases as the angle from viewerDir and normal vector grows
     rimFactor = max(0.0, rimFactor); // make sure not to get any negative values
@@ -135,6 +136,7 @@ vec3 calculateDirLight(DirectionalLight light)
     vec3 rimLight = vec3(0);
 
     // toon shading starts here
+    // based on: https://youtu.be/h15kTY3aWaY
     // keep track of intensity of light hitting the normal
     float intensity = dot(normalize(light.direction), normal);
 

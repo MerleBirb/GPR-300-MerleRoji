@@ -366,7 +366,7 @@ int main() {
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO); // bind to shadow fbo
 	glGenTextures(1, &shadowMap); // create shadowmap depthbuffer
 	glBindTexture(GL_TEXTURE_2D, shadowMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_BUFFER, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -378,13 +378,13 @@ int main() {
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind
-
 	// check shadowmap status
 	GLenum shadowStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	assert(shadowStatus == GL_FRAMEBUFFER_COMPLETE);
 	if (shadowStatus == GL_FRAMEBUFFER_COMPLETE) { printf("\nshadow complete"); }
 	else { printf("\nshadow incomplete"); }
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -402,13 +402,8 @@ int main() {
 			glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3(0.0f, 1.0f, 0.0f)
 		); // create view matrix from light
-		glm::mat4 lightModel = glm::mat4(1.0);
-		glm::mat4 lightViewProjMatrix = lightView * lightProjection * lightModel;
-
-		// draw scene from light's point of view
-		shadowShader.use();
-		shadowShader.setMat4("_MVP", lightViewProjMatrix);
-
+		glm::mat4 lightModel;
+		glm::mat4 lightViewProjMatrix = lightView * lightProjection * glm::mat4(1.0f);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind
 
 		// render scene
@@ -484,22 +479,43 @@ int main() {
 		}
 
 		//Draw cube
+		litShader.use();
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
+		cubeMesh.draw();
+		shadowShader.use();
+		lightModel = cubeTransform.getModelMatrix();
+		shadowShader.setMat4("_MVP", lightView * lightProjection * lightModel);
 		cubeMesh.draw();
 
 		//Draw sphere
+		litShader.use();
 		litShader.setMat4("_Model", sphereTransform.getModelMatrix());
+		sphereMesh.draw();
+		shadowShader.use();
+		lightModel = sphereTransform.getModelMatrix();
+		shadowShader.setMat4("_MVP", lightView * lightProjection * lightModel);
 		sphereMesh.draw();
 
 		//Draw cylinder
+		litShader.use();
 		litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
+		cylinderMesh.draw();
+		shadowShader.use();
+		lightModel = cylinderTransform.getModelMatrix();
+		shadowShader.setMat4("_MVP", lightView * lightProjection * lightModel);
 		cylinderMesh.draw();
 
 		//Draw plane
+		litShader.use();
 		litShader.setMat4("_Model", planeTransform.getModelMatrix());
+		planeMesh.draw();
+		shadowShader.use();
+		lightModel = planeTransform.getModelMatrix();
+		shadowShader.setMat4("_MVP", lightView * lightProjection * lightModel);
 		planeMesh.draw();
 
 		// coefficients
+		litShader.use();
 		litShader.setFloat("_Material.ambientCoefficient", ambCoefficient);
 		litShader.setFloat("_Material.diffuseCoefficient", difCoefficient);
 		litShader.setFloat("_Material.specularCoefficient", specCoefficient);

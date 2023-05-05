@@ -354,10 +354,35 @@ int main() {
 	if (fboStatus == GL_FRAMEBUFFER_COMPLETE) { printf("\ncomplete"); }
 	else { printf("\nincomplete"); }
 
-	// Create depth buffer
-	unsigned int depthBuffer;
-	GLuint depthTexture;
-	glActiveTexture(GL_TEXTURE3);
+	// Create depth buffer and shadow map
+	int shadowWidth = 2048;
+	int shadowHeight = 2048;
+	GLuint shadowFBO;
+	GLuint shadowMap; // depth buffer
+	glActiveTexture(GL_TEXTURE3); // activate unused texture slot
+	glGenFramebuffers(1, &shadowFBO); // create FBO
+	glGenTextures(1, &shadowMap); // create shadowmap depthbuffer
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, shadowWidth, shadowHeight, 0, GL_DEPTH_BUFFER, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO); // bind to shadow fbo
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
+
+	// disable write to color buffer
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind
+
+	// check shadowmap status
+	GLenum shadowStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	assert(shadowStatus == GL_FRAMEBUFFER_COMPLETE);
+	if (shadowStatus == GL_FRAMEBUFFER_COMPLETE) { printf("\nshadow complete"); }
+	else { printf("\nshadow incomplete"); }
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);

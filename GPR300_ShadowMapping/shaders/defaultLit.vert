@@ -13,6 +13,9 @@ uniform mat4 _Projection;
 
 uniform float _NmapIntensity;
 
+uniform mat4 _LightViewProj; // view * projection of light source
+out vec4 lightSpacePos; // position in light space
+
 out struct Vertex
 {
     vec3 WorldNormal;
@@ -24,6 +27,8 @@ void main()
     v_out.WorldPosition = vec3(_Model * vec4(vPos, 1));
     v_out.WorldNormal = transpose(inverse(mat3(_Model))) * vNormal;
     gl_Position = _Projection * _View * _Model * vec4(vPos, 1);
+
+    lightSpacePos = _LightViewProj * _Model * vec4(vPos, 1);
 
     vec3 bitangent = normalize(cross(vNormal, vTangent));
     mat3 localTBN = mat3(vTangent * _NmapIntensity, bitangent * _NmapIntensity, vNormal);

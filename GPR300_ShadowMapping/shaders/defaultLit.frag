@@ -64,6 +64,20 @@ uniform sampler2D _NormalMap;
 uniform float _Time;
 uniform bool _Animated;
 
+// shadows
+in vec4 lightSpacePos;
+uniform sampler2D _ShadowMap;
+
+float calculateShadow(sampler2D shadowMap, vec4 lightSpacePos)
+{
+    vec3 sampleCoord = lightSpacePos.xyz / lightSpacePos.w; //Homogeneous Clip space to NDC coords [-w,w] to [-1,1]
+    sampleCoord = sampleCoord * 0.5 + 0.5; //Convert from [-1,1] to [0,1] for sampling
+
+    float shadowMapDepth = texture(shadowMap, sampleCoord.xy).r;
+    float myDepth = sampleCoord.z;
+    return step(shadowMapDepth, myDepth); //step(a,b) returns 1.0 if a >= b, 0.0 otherwise
+}
+
 vec3 ambient(float coefficient, vec3 color)
 {
     vec3 ambientLight;
@@ -115,7 +129,9 @@ vec3 calculateDirLight(DirectionalLight light, vec3 normal)
     vec3 diffuseLight = diffuse(_Material.diffuseCoefficient, toLightDir, normal, light.color);
     vec3 specularLight = specular(_Material.specularCoefficient, toLightDir, normal, _Material.shininess, light.color);
 
-    lightColor = (ambientLight + diffuseLight + specularLight) * light.intensity;
+    
+
+    lightColor = ((ambientLight + diffuseLight + specularLight) * light.intensity);
     return lightColor;
 }
 
@@ -185,8 +201,10 @@ void main()
     // spotlights
     for (int s = 0; s < _NumSptLights; s++) { color += calculateSpotLight(_SptLights[s], normalmap); }
 
+    float shadow = calculateShadow(_ShadowMap, lightSpacePos);
+
     vec3 matColor = vec3(_Material.objColor);
-    vec4 totalColor = vec4(matColor * color, 1.0f);
+    vec4 totalColor = vec4(matColor * color, 1.0) * (1.0 - shadow);
 
     FragColor = vec4(totalColor * tex);
 }

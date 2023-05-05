@@ -168,6 +168,8 @@
     <Image Include="Resources\brickTex2norm.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\depthbuffer.frag" />
+    <None Include="shaders\depthbuffer.vert" />
     <None Include="shaders\fullscreenquad.frag" />
     <None Include="shaders\fullscreenquad.vert" />
   </ItemGroup>

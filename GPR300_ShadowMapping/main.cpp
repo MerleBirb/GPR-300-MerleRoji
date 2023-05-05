@@ -248,7 +248,7 @@ int main() {
 	// Generate a texture name
 	int texChoice = 0;
 	const int NUM_OF_TEXTURES = 4;
-	float nmapIntensity = 0.0f;
+	float nmapIntensity = 1.0f;
 	bool animated = 0;
 	GLuint textures[NUM_OF_TEXTURES];
 	for (size_t i = 0; i < NUM_OF_TEXTURES; i++)
@@ -355,21 +355,23 @@ int main() {
 	else { printf("\nincomplete"); }
 
 	// Create depth buffer and shadow map
-	int shadowWidth = 2048;
-	int shadowHeight = 2048;
+	Shader shadowShader("shaders/depthbuffer.vert", "shaders/depthbuffer.frag");
+	const int SHADOW_WIDTH = 2048;
+	const int SHADOW_HEIGHT = 2048;
+	float nearPlane = 1.0f;
+	float farPlane = 20.0f;
 	GLuint shadowFBO;
 	GLuint shadowMap; // depth buffer
-	glActiveTexture(GL_TEXTURE3); // activate unused texture slot
 	glGenFramebuffers(1, &shadowFBO); // create FBO
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO); // bind to shadow fbo
 	glGenTextures(1, &shadowMap); // create shadowmap depthbuffer
 	glBindTexture(GL_TEXTURE_2D, shadowMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, shadowWidth, shadowHeight, 0, GL_DEPTH_BUFFER, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_BUFFER, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO); // bind to shadow fbo
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
 
 	// disable write to color buffer
@@ -389,8 +391,29 @@ int main() {
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// render to shadow depth map
+		glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO); // bind shadow fbo
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane); // create projection from light
+		glm::mat4 lightView = glm::lookAt(
+			dirLightTransform.position,
+			glm::vec3(0.0f, 0.0f, 0.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f)
+		); // create view matrix from light
+		glm::mat4 lightModel = glm::mat4(1.0);
+		glm::mat4 lightViewProjMatrix = lightView * lightProjection * lightModel;
+
+		// draw scene from light's point of view
+		shadowShader.use();
+		shadowShader.setMat4("_MVP", lightViewProjMatrix);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); // unbind
+
 		// render scene
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -401,11 +424,13 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
-		//Draw
+		//Draw from camera's point of view
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
 		litShader.setVec3("_CameraPos", camera.getPosition());
+		litShader.setMat4("_LightViewProj", lightViewProjMatrix);
+		litShader.setInt("_ShadowMap", shadowMap);
 
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, fsQuadTex);
@@ -415,6 +440,9 @@ int main() {
 
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, textures[texChoice + 2]);
+
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, shadowMap);
 
 		// set texture
 		litShader.setInt("_BrickTexture", 0);
@@ -517,6 +545,8 @@ int main() {
 		quadShader.setInt("_IsNegOn", isNegOn);
 
 		quadMesh.draw();
+
+		
 
 		//Draw UI
 		ImGui::Begin("Settings");
@@ -658,29 +688,3 @@ void processInput(GLFWwindow* window) {
 	position += up * getAxis(window, GLFW_KEY_Q, GLFW_KEY_E) * moveAmnt;
 	camera.setPosition(position);
 }
-
-//// Author: Merle Roji
-//// Sets up the texture with default settings for the project
-//void quickSetupTexture(GLuint currentTex, unsigned char* currentTexData, int width, int height)
-//{
-//	// Bind texture name to GL_TEXTURE_2D to make it a 2D texture
-//	glBindTexture(GL_TEXTURE_2D, currentTex);
-//
-//	// set texture data
-//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, currentTexData);
-//
-//	// Wrap Horizontally
-//	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-//
-//	// Clamp vertically
-//	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-//
-//	// Magnify with nearest neighbor sampling
-//	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//
-//	// Mipmaps
-//	glGenerateMipmap(GL_TEXTURE_2D);
-//
-//	// Minify with bilinear sampling
-//	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-//}

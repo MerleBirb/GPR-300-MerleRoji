@@ -116,5 +116,7 @@
   <ItemGroup>
     <None Include="shaders\fullscreenquad.frag" />
     <None Include="shaders\fullscreenquad.vert" />
+    <None Include="shaders\depthbuffer.frag" />
+    <None Include="shaders\depthbuffer.vert" />
   </ItemGroup>
 </Project>
